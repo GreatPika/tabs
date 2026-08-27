@@ -1,18 +1,18 @@
-name: tab_container
-description: Customisable tab view/carousel with animated indicator. Just pass in children and tabs, or use a TabController, change the tab side, add color(s), and more.
-version: 3.5.3
-homepage: https://github.com/sourcemain/tab_container
-repository: https://github.com/sourcemain/tab_container
+name: tabs
+description: Tabs is a customisable Flutter tab view/carousel with an animated indicator, controller navigation, focus support, and semantics hooks.
+version: 5.0.0
+homepage: https://github.com/GreatPika/tabs
+repository: https://github.com/GreatPika/tabs
 
 environment:
-  sdk: ">=3.0.0 <4.0.0"
-  flutter: ">=2.0.0"
+  sdk: ^3.8.0
+  flutter: ">=3.32.0"
 
 dependencies:
   flutter:
     sdk: flutter
 
 dev_dependencies:
+  flutter_lints: ^6.0.0
   flutter_test:
     sdk: flutter
-  flutter_lints: ^3.0.2

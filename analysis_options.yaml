@@ -1,4 +1,225 @@
+analyzer:
+  exclude:
+    - "**/*.g.dart"
+    - "**/*.freezed.dart"
+    - "**/*.mocks.dart"
+    - build/**
+    - android/**
+    - ios/**
+    - web/**
+    - windows/**
+    - macos/**
+    - linux/**
+
+  language:
+    strict-casts: true
+    strict-inference: true
+    strict-raw-types: true
+
 include: package:flutter_lints/flutter.yaml
 
-# Additional information about this file can be found at
-# https://dart.dev/guides/language/analysis-options
+linter:
+  rules:
+    # Constructors / factories / object creation
+    prefer_constructors_over_static_methods: true
+    tighten_type_of_initializing_formals: true
+    prefer_const_constructors: true
+    prefer_const_literals_to_create_immutables: true
+    prefer_const_declarations: true
+    use_colored_box: true
+    use_decorated_box: true
+    sized_box_shrink_expand: true
+
+    # Classes and mixins
+    avoid_classes_with_only_static_members: true
+    prefer_mixin: true
+    avoid_implementing_value_types: true
+    diagnostic_describe_all_properties: true
+
+    # Fields and members
+    prefer_final_locals: true
+    prefer_final_in_for_each: true
+    use_setters_to_change_properties: true
+    avoid_setters_without_getters: true
+    avoid_returning_this: true
+    avoid_unused_constructor_parameters: true
+    parameter_assignments: true
+
+    # Types and API boundaries
+    always_declare_return_types: true
+    type_annotate_public_apis: true
+    omit_local_variable_types: true
+    avoid_types_on_closure_parameters: true
+    avoid_private_typedef_functions: true
+    avoid_dynamic_calls: true
+    avoid_futureor_void: true
+    prefer_void_to_null: true
+    use_enums: true
+
+    # Parameters
+    avoid_positional_boolean_parameters: true
+    always_put_required_named_parameters_first: true
+
+    # Equality
+    avoid_equals_and_hash_code_on_mutable_classes: true
+    no_literal_bool_comparisons: true
+    test_types_in_equals: true
+
+    # Conversion naming
+    use_to_and_as_if_applicable: true
+    avoid_type_to_string: true
+    no_runtimetype_tostring: true
+
+    # Override hygiene
+    matching_super_parameters: true
+    directives_ordering: true
+    combinators_ordering: true
+
+    # Async / lifecycle
+    unawaited_futures: true
+    discarded_futures: true
+    avoid_void_async: true
+    avoid_slow_async_io: true
+    cancel_subscriptions: true
+    close_sinks: true
+    unnecessary_async: true
+    unnecessary_await_in_return: true
+    unnecessary_unawaited: true
+
+    # Error handling
+    only_throw_errors: true
+    avoid_catches_without_on_clauses: true
+    avoid_catching_errors: true
+    throw_in_finally: true
+
+    # Assertions
+    prefer_asserts_in_initializer_lists: true
+    prefer_asserts_with_message: true
+
+    # Noise reduction
+    avoid_redundant_argument_values: true
+    avoid_bool_literals_in_conditional_expressions: true
+    avoid_field_initializers_in_const_classes: true
+    avoid_multiple_declarations_per_line: true
+    conditional_uri_does_not_exist: true
+    deprecated_consistency: true
+    deprecated_member_use_from_same_package: true
+    document_ignores: true
+    eol_at_end_of_file: true
+    flutter_style_todos: true
+    invalid_case_patterns: true
+    join_return_with_assignment: true
+    missing_code_block_language_in_doc_comment: true
+    missing_whitespace_between_adjacent_strings: true
+    no_adjacent_strings_in_list: true
+    no_self_assignments: true
+    noop_primitive_operations: true
+    prefer_null_aware_method_calls: true
+    sort_pub_dependencies: true
+    unnecessary_breaks: true
+    unnecessary_ignore: true
+    unnecessary_lambdas: true
+    unnecessary_library_directive: true
+    unnecessary_null_aware_operator_on_extension_on_nullable: true
+    unnecessary_null_checks: true
+    unnecessary_parenthesis: true
+    unnecessary_statements: true
+    use_is_even_rather_than_modulo: true
+    use_named_constants: true
+    use_string_buffers: true
+    use_test_throws_matchers: true
+    use_truncating_division: true
+
+dcm:
+  exclude:
+    metrics:
+      - docs/**
+      - .dart_tool/**
+      - build/**
+      - "**/*.g.dart"
+      - "**/*.freezed.dart"
+      - "**/*.mocks.dart"
+
+  rules:
+    - avoid-assignments-as-conditions
+    - avoid-dynamic
+    - avoid-duplicate-exports
+    - avoid-duplicate-named-imports
+    - avoid-unused-parameters:
+        ignore-inline-functions: true
+    - avoid-non-null-assertion
+    - avoid-nullable-tostring
+    - avoid-passing-async-when-sync-expected
+    - avoid-redundant-async
+    - avoid-unrelated-type-assertions
+    - avoid-unnecessary-type-assertions
+    - avoid-unnecessary-type-casts
+    - avoid-collection-methods-with-unrelated-types:
+        strict: true
+    - avoid-misused-set-literals
+    - avoid-missed-calls
+    - avoid-commented-out-code
+    - avoid-cascade-after-if-null
+    - avoid-double-slash-imports
+    - avoid-duplicate-mixins
+    - avoid-empty-spread
+    - avoid-generics-shadowing
+    - avoid-throw-in-catch-block
+    - avoid-substring
+    - no-empty-block
+    - avoid-returning-widgets
+    - avoid-unnecessary-setstate
+    - use-setstate-synchronously
+    - avoid-unnecessary-stateful-widgets
+    - always-remove-listener
+    - avoid-missing-image-alt
+    - avoid-incorrect-image-opacity
+    - prefer-using-list-view
+    - prefer-text-rich
+    - prefer-extracting-callbacks
+    - prefer-define-hero-tag
+    - prefer-correct-edge-insets-constructor
+    - prefer-const-border-radius
+    - consistent-update-render-object
+    - check-for-equals-in-render-object-setters
+    - avoid-wrapping-in-padding
+    - avoid-shrink-wrap-in-lists
+    - avoid-incomplete-copy-with
+    - avoid-expanded-as-spacer
+    - avoid-border-all
+    - prefer-commenting-analyzer-ignores:
+        ignore-global: true
+    - avoid-global-state
+    - missing-test-assertion
+
+  metrics:
+    cyclomatic-complexity:
+      threshold: 10
+    halstead-volume:
+      threshold: 1000
+    maintainability-index:
+      threshold: 0.5
+    maximum-nesting-level:
+      threshold: 4
+    number-of-parameters:
+      threshold: 4
+    source-lines-of-code:
+      threshold: 40
+    number-of-methods:
+      threshold: 10
+    number-of-imports:
+      threshold: 10
+    number-of-external-imports:
+      threshold: 5
+    weighted-methods-per-class:
+      threshold: 35
+    coupling-between-object-classes:
+      threshold: 12
+    response-for-class:
+      threshold: 40
+    depth-of-inheritance-tree:
+      threshold: 4
+    widgets-nesting-level:
+      threshold: 6
+    number-of-used-widgets:
+      threshold: 16

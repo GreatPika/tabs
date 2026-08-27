@@ -1,0 +1,19 @@
+# Repository coordination files are useful for local maintenance but are not
+# part of the published Flutter package API, examples, or documentation.
+/.agents/
+/.codex/
+/.design/
+/plan/
+/AGENTS.md
+/PLAN.md
+/skills-lock.json
+
+# Local tool output can exist even when ignored by Git.
+/.dart_tool/
+/build/
+/doc/api/
+/pubspec.lock
+/example/.dart_tool/
+/example/build/
+/example/.idea/
+/example/*.iml

@@ -1,335 +1,312 @@
-Tab view/carousel widget with a beautifully animated indicator and simple usage. 
-Just pass in a list of children and a list of tabs and it will handle the rest, or you can customise 
-by using a TabController, changing the tab side, adding color(s), and much more.
+# Tabs
 
-Check the [focus](#focus) and [semantics](#semantics) sections and [file any issues.](https://github.com/sourcemain/tab_container/issues)
+Tabs is a customizable Flutter tab view and carousel widget with an animated
+indicator, optional `TabController` integration, configurable tab placement,
+focus support, and caller-controlled semantics.
 
-> New in 3.5.0: [TabContainerFocus](#focus) widget.
+## Fork Notice
 
-> New in 3.1.0: Automatic scrolling if there are too many tabs. (Use tabMinLength).
+Tabs is a fork of [tab_container](https://github.com/sourcemain/tab_container).
+It is maintained here as an independent package with its own `Tabs` API and
+release history. The original project's MIT terms and copyright notice are
+retained alongside attribution for fork contributions in [LICENSE](LICENSE).
 
----
+## Install
 
-## Demo
-
-<img src="https://media.giphy.com/media/cEkR19IlJ4My225oGg/giphy.gif" width="400" alt="tab demo gif"/>
-<img src="https://media.giphy.com/media/cfcGdVa2qCARzhloBc/giphy.gif" width="400" alt="tab demo gif"/>
-<img src="https://media.giphy.com/media/pCMsQiashXbfc6VZDg/giphy.gif" width="400" alt="tab demo gif"/>
-<img src="https://media.giphy.com/media/17dmmdIzSaySZ8fZWB/giphy.gif" width="400" alt="tab demo gif"/>
-
----
-
-## Usage
-
-Check the [/example](https://pub.dev/packages/tab_container/example) folder for full examples similar to the above demo.
-
- - Supply your own `TabController` to manually get/set the index.
- - Fully control the view with `child:` property alternative to `children:`, i.e, 
-you can use it as a switch container as well as a tab container.
- - Specify per corner border radii.
- - Customise animations.
- - Wrap each tab with `MouseRegion(...Center(...` if you want cursor effects.
- - Change tab placement and sizing.
- - Wrap with [TabContainerFocus](#focus).
-
-Check the [API](#api) for much more.
-
-
-#### Minimal:
+```yaml
+dependencies:
+  tabs: ^5.0.0
+```
 
 ```dart
-import 'package:tab_container/tab_container.dart';
+import 'package:flutter/material.dart';
+import 'package:tabs/tabs.dart';
+```
 
-//...
+Requires Dart `^3.8.0` and Flutter `>=3.32.0`.
 
-TabContainer(
-  controller: _tabController,
+## Basic Usage
+
+```dart
+Tabs(
+  tabs: const [
+    Text('Overview'),
+    Text('Details'),
+    Text('Settings'),
+  ],
+  children: const [
+    Center(child: Text('Overview content')),
+    Center(child: Text('Details content')),
+    Center(child: Text('Settings content')),
+  ],
+);
+```
+
+## Controlled Tabs
+
+Use a Flutter `TabController` when another part of your UI needs to read or
+change the selected tab.
+
+```dart
+class ControlledTabs extends StatefulWidget {
+  const ControlledTabs({super.key});
+
+  @override
+  State<ControlledTabs> createState() => _ControlledTabsState();
+}
+
+class _ControlledTabsState extends State<ControlledTabs>
+    with SingleTickerProviderStateMixin {
+  late final TabController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TabController(length: 2, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => Tabs(
+    controller: _controller,
+    tabEdge: TabEdge.bottom,
+    tabs: const [Text('One'), Text('Two')],
+    children: const [Text('First panel'), Text('Second panel')],
+  );
+}
+```
+
+The `TabController` length must match `tabs`; dispose every controller you
+create.
+
+## Child State
+
+When you pass `children`, `Tabs` switches only the active child through its
+transition. Inactive children are not kept alive by the package. If inactive
+content must retain widget state, pass a single `child` and manage retention
+with your own `IndexedStack`, `PageView`, or equivalent controller-driven
+container.
+
+## Styling
+
+`Tabs` supports per-tab colors, a single background color, separate border radii
+for the content and tabs, tab placement on any edge, tab range constraints, text
+style animation, custom transition builders, tab-strip action buttons, and child
+padding.
+
+```dart
+Tabs(
   tabEdge: TabEdge.right,
   tabsStart: 0.1,
   tabsEnd: 0.9,
-  tabMaxLength: 100,
-  borderRadius: BorderRadius.circular(10),
-  tabBorderRadius: BorderRadius.circular(10),
-  childPadding: const EdgeInsets.all(20.0),
-  selectedTextStyle: const TextStyle(
-    color: Colors.white,
-    fontSize: 15.0,
-  ),
-  unselectedTextStyle: const TextStyle(
-    color: Colors.black,
-    fontSize: 13.0,
-  ),
-  colors: [
-    Colors.red,
-    Colors.green,
+  tabMaxLength: 120,
+  tabLeadingButtons: [
+    TabsActionButton(
+      onPressed: () {},
+      icon: Icons.add,
+    ),
+  ],
+  tabTrailingButtons: [
+    TabsActionButton(
+      onPressed: () {},
+      icon: Icons.more_horiz,
+      variant: TabsActionButtonVariant.outlined,
+    ),
+  ],
+  borderRadius: const BorderRadius.all(Radius.circular(12)),
+  tabBorderRadius: const BorderRadius.all(Radius.circular(12)),
+  childPadding: const EdgeInsets.all(16),
+  colors: const [
     Colors.blue,
+    Colors.green,
+    Colors.orange,
   ],
-  tabs: [
-    Text('Tab 1'),
-    Text('Tab 2'),
-    Text('Tab 3'),
+  tabs: const [
+    Text('A'),
+    Text('B'),
+    Text('C'),
   ],
-  children: [
-    Container(
-      child: Text('Child 1'),
-    ),
-    Container(
-      child: Text('Child 2'),
-    ),
-    Container(
-      child: Text('Child 3'),
-    ),
+  children: const [
+    Text('Panel A'),
+    Text('Panel B'),
+    Text('Panel C'),
   ],
 );
 ```
 
-### Focus
+`tabLeadingButtons` and `tabTrailingButtons` are generated by `Tabs` as
+Material-styled buttons. Each button is placed in a square `tabExtent` slot,
+separated from tab labels by `tabButtonGap`, clipped with a radius derived from
+`tabBorderRadius`, and shaped to match the tab label corners. Use
+`TabsActionButtonVariant.standard`, `filled`, `filledTonal`, or `outlined` to
+select the button appearance. The `icon` parameter accepts any `IconData`,
+including Material Icons, HugeIcons, CupertinoIcons, and icons from other
+icon-font packages. Material controls the button's appearance only; it does
+not restrict which icon you pass.
 
-`TabContainer` intentionally has no built-in focus implementation. Create your own or, 
-to add one that maps arrow keys to the index, you can wrap your `TabContainer` with `TabContainerFocus`:
+Use `collapsed` and `onCollapsedChanged` to let one existing tab-strip action
+button collapse the tab view down to its strip. Assign
+`TabsActionButtonAction.toggleCollapse` to a leading or trailing button; `Tabs`
+keeps that button anchored in its original leading or trailing position and
+keeps the active child mounted while collapsed.
 
-```dart
-TabContainerFocus(
-  controller: _controller,
-  focusDecoration: BoxDecoration(
-    border: const Border.fromBorderSide(BorderSide(width: 4)),
-    borderRadius: BorderRadius.circular(10),
-  ),
-  focusPadding: const EdgeInsets.all(3),
-  child: TabContainer(
-    controller: _controller,
-    //...
-  ),
-),
-```
+Set `collapseDuration` to control the collapse and expand animation timing
+separately from tab-selection animation timing. It defaults to 220 ms.
 
-### Semantics
-
-By default, `TabContainer` will no longer impose any additional semantic information onto the tabs or children.
-It will just describe its own semantics configuration using `onIncrease` and `onDecrease` to change the tab index.
-You can completely override this by supplying your own `SemanticsConfiguration` in the `semanticsConfiguration:` property.
-If you want to prevent accessibility tools from getting stuck in your tab bar, you can wrap each tab in `ExcludeSemantics` or,
-if you do want them to be accessed, you can wrap each one similarly to below:
+Use at most one `TabsActionButtonAction.toggleCollapse` button in a `Tabs`
+instance. When `collapsed` is true, that button is required so the collapsed
+strip still exposes the action that can expand it. If `onCollapsedChanged` is
+null, the collapse-toggle button is disabled and its own `onPressed` callback is
+not invoked.
 
 ```dart
-final SemanticsProperties properties = SemanticsProperties(
-  label: 'Tab button ${index + 1} of ${tabs.length}',
-  hint: 'Press to view tab ${index + 1}',
-  selected: selected,
-  enabled: enabled,
-  button: true,
-  inMutuallyExclusiveGroup: true,
-  onTap: enabled
-      ? () => _controller.animateTo(index, curve: curve)
-      : null,
-);
+class CollapsibleTabs extends StatefulWidget {
+  const CollapsibleTabs({super.key});
 
-return Semantics.fromProperties(
-  properties: properties,
-  child: tab,
-);
-```
----
+  @override
+  State<CollapsibleTabs> createState() => _CollapsibleTabsState();
+}
 
-## API:
-```dart
-class TabContainer extends StatefulWidget {
-  const TabContainer({
-    super.key,
-    this.duration = const Duration(milliseconds: 300),
-    this.curve = Curves.easeInOut,
-    this.controller,
-    this.children,
-    this.child,
-    required this.tabs,
-    this.childPadding = EdgeInsets.zero,
-    this.borderRadius = const BorderRadius.all(Radius.circular(12.0)),
-    this.tabBorderRadius = const BorderRadius.all(Radius.circular(12.0)),
-    this.tabExtent = 50.0,
-    this.tabEdge = TabEdge.top,
-    this.tabsStart = 0.0,
-    this.tabsEnd = 1.0,
-    this.tabMinLength = 0.0,
-    this.tabMaxLength = double.infinity,
-    this.color,
-    this.colors,
-    this.transitionBuilder,
-    this.semanticsConfiguration,
-    this.overrideTextProperties = false,
-    this.selectedTextStyle,
-    this.unselectedTextStyle,
-    this.textDirection,
-    this.enabled = true,
-    this.enableFeedback = true,
-    this.childDuration,
-    this.childCurve,
-  })  : assert((children == null) != (child == null)),
-        assert((children != null) ? children.length == tabs.length : true),
-        assert(controller == null ? true : controller.length == tabs.length),
-        assert(!(color != null && colors != null)),
-        assert((colors ?? tabs).length == tabs.length),
-        assert(tabExtent >= 0),
-        assert(0.0 <= tabsStart && tabsStart < tabsEnd && tabsEnd <= 1.0),
-        assert(tabMinLength >= 0),
-        assert(tabMaxLength >= tabMinLength),
-        assert((selectedTextStyle == null) == (unselectedTextStyle == null));
+class _CollapsibleTabsState extends State<CollapsibleTabs> {
+  var _collapsed = false;
 
-  /// Changes tab selection from elsewhere in your app.
-  ///
-  /// If you provide one, you must dispose of it.
-  final TabController? controller;
-
-  /// The list of children you want to tab through, in order.
-  ///
-  /// Must be equal in length to [tabs] and [colors] (if provided).
-  /// Must be null if [child] is supplied.
-  final List<Widget>? children;
-
-  /// Supply this if you want to control the child view yourself using [TabController].
-  ///
-  /// Must be equal in length to [tabs] and [colors] (if provided).
-  /// Must be null if [children] is supplied;
-  final Widget? child;
-
-  /// What will be displayed in each tab, in order.
-  ///
-  /// Must be equal in length to [children] and [colors] (if provided).
-  final List<Widget> tabs;
-
-  /// Sets the border radius surrounding the children
-  ///
-  /// Defaults to [BorderRadius.all(Radius.circular(12.0))]
-  final BorderRadius borderRadius;
-
-  /// Sets the border radius surrounding each tab
-  ///
-  /// Defaults to [BorderRadius.all(Radius.circular(12.0))]
-  final BorderRadius tabBorderRadius;
-
-  /// Sets the padding to be applied around all [children].
-  ///
-  /// Defaults to [EdgeInsets.zero].
-  final EdgeInsets childPadding;
-
-  /// Height of the tabs perpendicular to the [TabEdge].
-  ///
-  /// If the [tabs] are on the left/right then this will be the their visual width, otherwise it will be their visual height.
-  /// Defaults to 50.0.
-  final double tabExtent;
-
-  /// Determines which side the [tabs] will be on.
-  ///
-  /// Defaults to [TabEdge.top].
-  final TabEdge tabEdge;
-
-  /// Fraction of the way down the [TabEdge] that the first tab should begin.
-  ///
-  /// Defaults to 0.0.
-  final double tabsStart;
-
-  /// Fraction of the way down the [TabEdge] that the last tab should end.
-  ///
-  /// Defaults to 1.0.
-  final double tabsEnd;
-
-  /// Minimum width of each tab parallel to the [TabEdge].
-  ///
-  /// Defaults to 0.0
-  final double tabMinLength;
-
-  /// Maximum width of each tab parallel to the [TabEdge].
-  ///
-  /// Defaults to [double.infinity].
-  final double tabMaxLength;
-
-  /// The background color of this widget.
-  ///
-  /// Must not be set if [colors] is provided.
-  final Color? color;
-
-  /// The list of colors used for each tab, in order.
-  ///
-  /// The first color in the list will be the background color when tab 1 is selected and so on.
-  /// Must not be set if [color] is provided.
-  final List<Color>? colors;
-
-  /// Duration used by [controller] to animate tab changes.
-  ///
-  /// Defaults to Duration(milliseconds: 300).
-  final Duration duration;
-
-  /// Curve used by [controller] to animate tab changes.
-  ///
-  /// Defaults to Curves.easeInOut.
-  final Curve curve;
-
-  /// Duration of the child transition animation when the tab selection changes.
-  ///
-  /// Defaults to [duration].
-  /// Not used if [child] is supplied.
-  final Duration? childDuration;
-
-  /// The curve of the child transition animation when the tab selection changes.
-  ///
-  /// Defaults to [curve].
-  /// Not used if [child] is supplied.
-  final Curve? childCurve;
-
-  /// Sets the child transition animation when the tab selection changes.
-  ///
-  /// Defaults to [AnimatedSwitcher.defaultTransitionBuilder].
-  /// Not used if [child] is supplied.
-  final Widget Function(Widget, Animation<double>)? transitionBuilder;
-
-  /// The [SemanticsConfiguration] for the [RenderObject] of [TabContainer] itself, not its children or tabs.
-  /// You can completely control the accessibility behaviour by supplying this and wrapping your child and tabs in their own semantics.
-  ///
-  /// If non-null, this will be used instead of the default implementation.
-  final SemanticsConfiguration? semanticsConfiguration;
-
-  /// Set to true if each [Text] tabs given properties should be used instead of the implicitly animated ones.
-  ///
-  /// Defaults to false.
-  final bool overrideTextProperties;
-
-  /// The [TextStyle] applied to the text of the currently selected tab.
-  ///
-  /// Must specify values for the same properties as [unselectedTextStyle].
-  /// Defaults to Theme.of(context).textTheme.bodyMedium.
-  final TextStyle? selectedTextStyle;
-
-  /// The [TextStyle] applied to the text of currently unselected tabs.
-  ///
-  /// Must specify values for the same properties as [selectedTextStyle].
-  /// Defaults to Theme.of(context).textTheme.bodyMedium.
-  final TextStyle? unselectedTextStyle;
-
-  /// The [TextDirection] for tabs and semantics.
-  ///
-  /// Defaults to Directionality.of(context).
-  final TextDirection? textDirection;
-
-  /// Whether tab selection changes on tap.
-  ///
-  /// Defaults to true.
-  final bool enabled;
-
-  /// Whether detected gestures on tabs should provide acoustic and/or haptic feedback.
-  ///
-  /// Defaults to true.
-  final bool enableFeedback;
+  @override
+  Widget build(BuildContext context) => Tabs(
+    collapsed: _collapsed,
+    collapseDuration: const Duration(milliseconds: 220),
+    onCollapsedChanged: (value) => setState(() => _collapsed = value),
+    tabTrailingButtons: [
+      TabsActionButton(
+        action: TabsActionButtonAction.toggleCollapse,
+        icon: _collapsed ? Icons.unfold_more : Icons.unfold_less,
+        semanticLabel: _collapsed ? 'Expand tabs' : 'Collapse tabs',
+      ),
+    ],
+    tabs: const [Text('A'), Text('B')],
+    children: const [Text('Panel A'), Text('Panel B')],
+  );
 }
 ```
----
 
-## Additional information
+## Focus
 
-Icons used in the demo: [Ionicons](https://ionic.io/ionicons), [FontAwesome5](https://fontawesome.com/v5.15/icons?d=gallery&p=2&m=free)
+`TabsFocus` provides a small keyboard focus wrapper that maps arrow keys to the
+selected tab. The default `tabAxis: Axis.horizontal` handles left/right keys;
+use `tabAxis: Axis.vertical` for left or right tab strips that should handle
+up/down keys. Key handling follows physical/index order and is not mirrored for
+RTL: previous keys decrement the `TabController.index`, next keys increment it.
+Selection is clamped at the first and last tabs.
 
-Car photos used in the demo:
- - [https://unsplash.com/photos/eqW1MPinEV4](https://unsplash.com/photos/eqW1MPinEV4)
- - [https://unsplash.com/photos/N9Pf2J656aQ](https://unsplash.com/photos/N9Pf2J656aQ)
- - [https://unsplash.com/photos/2AovfzYV3rc](https://unsplash.com/photos/2AovfzYV3rc)
- - [https://unsplash.com/photos/8qYE6LGHW-c](https://unsplash.com/photos/8qYE6LGHW-c)
+Inside a `State` object that owns a `TabController` (such as the controlled
+example above), wrap the tab view with `TabsFocus`:
 
-> Please [file any issues.](https://github.com/sourcemain/tab_container/issues)
+```dart
+TabsFocus(
+  controller: _controller,
+  tabAxis: Axis.horizontal,
+  focusDecoration: BoxDecoration(
+    border: const Border.fromBorderSide(BorderSide(width: 3)),
+    borderRadius: BorderRadius.circular(12),
+  ),
+  focusPadding: const EdgeInsets.all(3),
+  child: Tabs(
+    controller: _controller,
+    tabs: const [
+      Text('First'),
+      Text('Second'),
+    ],
+    children: const [
+      Text('First panel'),
+      Text('Second panel'),
+    ],
+  ),
+);
+```
+
+## Semantics
+
+By default, `Tabs` describes itself as a tab view and exposes increase/decrease
+semantic actions for changing the selected tab. Each tab is also exposed as an
+enabled button with selected state and a tap action when `enabled` is true.
+
+Use `semanticsLabel` and `semanticsHint` to customize the wrapper label and
+hint. Use `semanticsValueBuilder` to customize the current, decreased, and
+increased wrapper values:
+
+```dart
+Tabs(
+  semanticsLabel: 'Settings sections',
+  semanticsHint: 'Change the selected settings section',
+  semanticsValueBuilder: (index, count) => 'Section ${index + 1} of $count',
+  tabs: const [
+    Text('General'),
+    Text('Privacy'),
+  ],
+  children: const [
+    Text('General settings'),
+    Text('Privacy settings'),
+  ],
+);
+```
+
+The value builder receives a zero-based index in `0..count - 1`, matching
+Flutter's `TabController.index`, and the total tab count. If these parameters
+are null, `Tabs` keeps its defaults: `Tab view`, `Increase or decrease to view a
+different tab`, and `Viewing tab N of count`.
+
+## Input Requirements
+
+- `tabs` must not be empty.
+- Provide exactly one of `children` or `child`. `children`, `tabs`, and
+  `colors` (when provided) must have matching lengths.
+- A supplied `TabController` must have the same length as `tabs`.
+- Provide either `color` or `colors`, not both.
+- Provide both `selectedTextStyle` and `unselectedTextStyle`, or neither.
+
+## Migrating to 5.0.0
+
+Version 5.0.0 is a breaking public API cleanup. Keep importing the package from
+`package:tabs/tabs.dart`, but update retired compatibility names before
+upgrading.
+
+Use Flutter's `TabController` instead of `TabsController`. Create the controller
+with the same length as your tab list, pass it to `Tabs(controller: ...)`, and
+dispose it from the owning state object.
+
+Replace removed constructor parameters with their replacements:
+
+- `radius` -> `borderRadius` for the content shape, or `tabBorderRadius` for
+  individual tab shapes.
+- `isStringTabs` -> pass tab labels as widgets, for example `Text('Overview')`,
+  in the `tabs` list.
+- `tabDuration` -> `duration`.
+- `tabCurve` -> `curve`.
+- `tabStart` -> `tabsStart`.
+- `tabEnd` -> `tabsEnd`.
+- The previous low-level wrapper semantics override was removed. Use
+  `semanticsLabel`, `semanticsHint`, and `semanticsValueBuilder` for wrapper
+  semantics, and wrap tab or child content in `Semantics` when the content
+  itself needs custom accessibility labels or hints.
+- `children` now transitions only the active child. Move state that must remain
+  alive while inactive into a caller-owned `child` container such as an
+  `IndexedStack` or `PageView`.
+
+## Example
+
+See [example/lib/main.dart](example/lib/main.dart) for a larger sample that
+shows colors, transitions, tab placement, scrolling, and controller-driven
+navigation.
+
+## Public API
+
+- `Tabs`
+- `TabsFocus`
+- `TabEdge`
+- `TabsActionButton`
+- `TabsActionButtonAction`
+- `TabsActionButtonVariant`
