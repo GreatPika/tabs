@@ -1,6 +1,6 @@
 name: tabs
 description: Tabs is a customisable Flutter tab view/carousel with an animated indicator, controller navigation, focus support, and semantics hooks.
-version: 5.1.0
+version: 5.2.0
 homepage: https://github.com/GreatPika/tabs
 repository: https://github.com/GreatPika/tabs
 
