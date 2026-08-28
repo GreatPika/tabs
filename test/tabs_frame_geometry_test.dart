@@ -911,6 +911,8 @@ void main() {
                 tabMaxLength: double.infinity,
                 color: Colors.white,
                 colors: const [Color(0xffb71c1c), Color(0xff1b5e20)],
+                unselectedTabColor: null,
+                unselectedTabGap: 2,
                 semanticsLabel: null,
                 semanticsHint: null,
                 semanticsValueBuilder: null,

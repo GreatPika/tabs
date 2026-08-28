@@ -183,6 +183,8 @@ class Tabs extends StatefulWidget {
     this.onCollapsedChanged,
     this.color,
     this.colors,
+    this.unselectedTabColor,
+    this.unselectedTabGap = 2.0,
     this.transitionBuilder,
     this.semanticsLabel,
     this.semanticsHint,
@@ -223,6 +225,7 @@ class Tabs extends StatefulWidget {
        ),
        assert(tabMinLength >= 0, 'tabMinLength must be non-negative.'),
        assert(tabButtonGap >= 0, 'tabButtonGap must be non-negative.'),
+       assert(unselectedTabGap >= 0, 'unselectedTabGap must be non-negative.'),
        assert(
          (tabLeadingButtons.length == 0 && tabTrailingButtons.length == 0) ||
              tabButtonGap * 2 <= tabExtent,
@@ -364,6 +367,18 @@ class Tabs extends StatefulWidget {
   /// The first color in the list will be the background color when tab 1 is selected and so on.
   /// Must not be set if [color] is provided.
   final List<Color>? colors;
+
+  /// Fills unselected labels as distinct rounded surfaces on horizontal edges.
+  ///
+  /// When null, which is the default, tab labels keep their existing joined
+  /// appearance. When configured, top and bottom tab strips use this color for
+  /// every unselected label and reveal the active frame color between labels.
+  final Color? unselectedTabColor;
+
+  /// Space between separate unselected-label surfaces.
+  ///
+  /// Applied only when [unselectedTabColor] is configured. Defaults to 2.0.
+  final double unselectedTabGap;
 
   /// Duration used by [controller] to animate tab changes.
   ///
@@ -525,6 +540,8 @@ class Tabs extends StatefulWidget {
     );
     properties.add(ColorProperty('color', color));
     properties.add(IterableProperty<Color>('colors', colors));
+    properties.add(ColorProperty('unselectedTabColor', unselectedTabColor));
+    properties.add(DoubleProperty('unselectedTabGap', unselectedTabGap));
     properties.add(DiagnosticsProperty<Duration>('duration', duration));
     properties.add(
       DiagnosticsProperty<Duration>('collapseDuration', collapseDuration),
@@ -915,6 +932,8 @@ class _TabsState extends State<Tabs> with TickerProviderStateMixin {
       tabMaxLength: widget.tabMaxLength,
       color: widget.color,
       colors: widget.colors,
+      unselectedTabColor: widget.unselectedTabColor,
+      unselectedTabGap: widget.unselectedTabGap,
       semanticsLabel: widget.semanticsLabel,
       semanticsHint: widget.semanticsHint,
       semanticsValueBuilder: widget.semanticsValueBuilder,
