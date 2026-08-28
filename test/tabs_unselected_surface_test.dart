@@ -284,6 +284,85 @@ void main() {
     }
   });
 
+  testWidgets('vertical selection animates inactive surfaces with the frame', (
+    tester,
+  ) async {
+    const initialActiveColor = Color(0xffd32f2f);
+    const finalActiveColor = Color(0xff1565c0);
+    const inactiveColor = Color(0xffe65100);
+    final boundaryKey = GlobalKey();
+
+    for (final tabEdge in [TabEdge.left, TabEdge.right]) {
+      final controller = TabController(length: 2, vsync: tester);
+
+      try {
+        await tester.pumpWidget(
+          MaterialApp(
+            home: RepaintBoundary(
+              key: boundaryKey,
+              child: ColoredBox(
+                color: Colors.white,
+                child: Align(
+                  alignment: Alignment.topLeft,
+                  child: SizedBox(
+                    width: 160,
+                    height: 160,
+                    child: Tabs(
+                      controller: controller,
+                      duration: const Duration(seconds: 1),
+                      curve: Curves.linear,
+                      colors: const [initialActiveColor, finalActiveColor],
+                      unselectedTabColor: inactiveColor,
+                      unselectedTabGap: 4,
+                      tabEdge: tabEdge,
+                      tabExtent: 40,
+                      borderRadius: BorderRadius.zero,
+                      tabBorderRadius: BorderRadius.zero,
+                      enableFeedback: false,
+                      tabs: const [SizedBox.expand(), SizedBox.expand()],
+                      child: const SizedBox.expand(),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+
+        Future<Color> pixel(double y) => readBoundaryPixel(
+          tester: tester,
+          boundary: find.byKey(boundaryKey),
+          position: Offset(tabEdge == TabEdge.left ? 20 : 140, y),
+        );
+
+        expect(await pixel(20), initialActiveColor);
+        expect(await pixel(120), inactiveColor);
+
+        controller.animateTo(1, duration: const Duration(seconds: 1));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 500));
+
+        expect(await pixel(40), inactiveColor);
+        final transitionColor = await pixel(80);
+        expect(redOf(transitionColor), lessThan(redOf(initialActiveColor)));
+        expect(redOf(transitionColor), greaterThan(redOf(finalActiveColor)));
+        expect(
+          blueOf(transitionColor),
+          greaterThan(blueOf(initialActiveColor)),
+        );
+        expect(blueOf(transitionColor), lessThan(blueOf(finalActiveColor)));
+
+        await tester.pump(const Duration(milliseconds: 500));
+
+        expect(await pixel(40), inactiveColor);
+        expect(await pixel(80), finalActiveColor);
+      } finally {
+        await tester.pumpWidget(const SizedBox.shrink());
+        controller.dispose();
+      }
+    }
+  });
+
   testWidgets('overflow scrolling keeps the selected surface visible', (
     tester,
   ) async {
