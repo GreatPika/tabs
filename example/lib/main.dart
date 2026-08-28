@@ -207,8 +207,13 @@ class _ExamplePageState extends State<ExamplePage>
         Color(0xffa275e3),
         Color(0xff9aebed),
       ],
+      unselectedTabColor: const Color(0xff263238),
+      unselectedTabGap: 4,
       selectedTextStyle: textTheme.bodyMedium?.copyWith(fontSize: 15.0),
-      unselectedTextStyle: textTheme.bodyMedium?.copyWith(fontSize: 13.0),
+      unselectedTextStyle: textTheme.bodyMedium?.copyWith(
+        color: Colors.white,
+        fontSize: 13.0,
+      ),
       tabs: _getTabs1(),
       children: _getChildren1(),
     );

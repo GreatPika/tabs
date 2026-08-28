@@ -12,13 +12,15 @@ void main() {
     expect(find.text('Image 1'), findsOneWidget);
   });
 
-  testWidgets('first example shows tab labels above the content', (
+  testWidgets('first example shows separate inactive tab-label surfaces', (
     tester,
   ) async {
     await tester.pumpWidget(const MyApp());
 
     final firstTabs = tester.widget<Tabs>(find.byType(Tabs).first);
     expect(firstTabs.tabEdge, TabEdge.top);
+    expect(firstTabs.unselectedTabColor, const Color(0xff263238));
+    expect(firstTabs.unselectedTabGap, 4);
   });
 
   testWidgets('first example collapse button keeps the top trailing anchor', (
@@ -52,11 +54,12 @@ void main() {
 
     final tabsRect = tester.getRect(tabsFinder);
     final buttonRect = tester.getRect(collapseButton);
+    final tabButtonGap = tester.widget<Tabs>(tabsFinder).tabButtonGap;
 
     expect(tester.widget<Tabs>(tabsFinder).collapsed, isTrue);
-    expect(tabsRect.size, const Size(400, 50));
+    expect(tabsRect.size, const Size(400, 54));
     expect(buttonRect.top, tabsRect.top);
-    expect(buttonRect.right, tabsRect.right);
+    expect(buttonRect.right + tabButtonGap, tabsRect.right);
     expect(
       find.descendant(
         of: collapseButton,

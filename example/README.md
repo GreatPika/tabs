@@ -11,5 +11,4 @@ flutter run -d chrome
 flutter run -d macos
 ```
 
-From the repository root, use `flutter test example/test/widget_test.dart` for
-the example smoke test.
+Run `flutter test` from this directory for the example smoke test.
