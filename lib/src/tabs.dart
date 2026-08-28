@@ -115,7 +115,7 @@ class TabsActionButton {
   Widget _build(ButtonStyle style, {required VoidCallback? onPressed}) {
     final buttonIcon = switch (_iconWidget) {
       null => Icon(icon, semanticLabel: semanticLabel),
-      final Widget icon =>
+      final icon =>
         semanticLabel == null
             ? icon
             : Semantics(label: semanticLabel, child: icon),
