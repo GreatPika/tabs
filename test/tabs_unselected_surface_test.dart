@@ -31,7 +31,7 @@ void main() {
   });
 
   testWidgets(
-    'top and bottom edges paint transparent gaps and square inner edges',
+    'top and bottom edges paint inactive surfaces with transparent gaps',
     (tester) async {
       const activeColor = Color(0xff1565c0);
       const inactiveColor = Color(0xffe65100);
@@ -84,20 +84,15 @@ void main() {
         await tester.pumpWidget(buildTabs(tabEdge));
 
         final y = tabEdge == TabEdge.top ? 20.0 : 140.0;
-        final outerCornerY = tabEdge == TabEdge.top ? 1.0 : 159.0;
-        final innerEdgeY = tabEdge == TabEdge.top ? 39.0 : 120.0;
-
         expect(await pixel(Offset(100, y)), inactiveColor);
         expect(await pixel(Offset(80, y)), Colors.white);
         expect(await pixel(Offset(160, y)), Colors.white);
-        expect(await pixel(Offset(82, outerCornerY)), Colors.white);
-        expect(await pixel(Offset(100, innerEdgeY)), inactiveColor);
       }
     },
   );
 
   testWidgets(
-    'left and right edges paint transparent gaps and square inner edges',
+    'left and right edges paint inactive surfaces with transparent gaps',
     (tester) async {
       const activeColor = Color(0xff1565c0);
       const inactiveColor = Color(0xffe65100);
@@ -150,16 +145,9 @@ void main() {
         await tester.pumpWidget(buildTabs(tabEdge));
 
         final x = tabEdge == TabEdge.left ? 20.0 : 140.0;
-        final roundedCorner = tabEdge == TabEdge.left
-            ? const Offset(1, 83)
-            : const Offset(159, 83);
-        final innerEdgeX = tabEdge == TabEdge.left ? 39.0 : 120.0;
-
         expect(await pixel(Offset(x, 100)), inactiveColor);
         expect(await pixel(Offset(x, 80)), Colors.white);
         expect(await pixel(Offset(x, 160)), Colors.white);
-        expect(await pixel(roundedCorner), Colors.white);
-        expect(await pixel(Offset(innerEdgeX, 100)), inactiveColor);
       }
     },
   );
@@ -269,6 +257,8 @@ void main() {
 
       controller.animateTo(1, duration: const Duration(seconds: 1));
       await tester.pump();
+
+      expect(await pixel(const Offset(120, 20)), inactiveColor);
       await tester.pump(const Duration(milliseconds: 500));
 
       expect(await pixel(const Offset(40, 20)), inactiveColor);
@@ -344,6 +334,8 @@ void main() {
 
         controller.animateTo(1, duration: const Duration(seconds: 1));
         await tester.pump();
+
+        expect(await pixel(120), inactiveColor);
         await tester.pump(const Duration(milliseconds: 500));
 
         expect(await pixel(40), inactiveColor);

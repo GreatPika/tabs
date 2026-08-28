@@ -1832,15 +1832,18 @@ class RenderTabFrame extends RenderBox
     };
   }
 
-  // The frame path is easier to verify as one edge-aware builder because the
-  // critical points are shared by adjacent contour segments.
-  // ignore: cyclomatic-complexity, halstead-volume, source-lines-of-code, maintainability-index
   Path _getPath() {
+    final (indicatorStart, indicatorEnd) = _getIndicatorBounds(progress);
+    return _getPathForIndicator(indicatorStart, indicatorEnd);
+  }
+
+  // Active and inactive tabs share this complete contour, so keeping its
+  // adjacent segments together is safer than splitting its coupled geometry.
+  // ignore: cyclomatic-complexity, halstead-volume, source-lines-of-code, maintainability-index
+  Path _getPathForIndicator(double indicatorStart, double indicatorEnd) {
     // Path phase 1: capture current frame and indicator geometry.
     final width = size.width;
     final height = size.height;
-
-    final (indicatorStart, indicatorEnd) = _getIndicatorBounds(progress);
     final radius = _radiusForFrame(borderRadius);
     final tabRadius = _radiusForFrame(tabBorderRadius);
 
@@ -2044,54 +2047,52 @@ class RenderTabFrame extends RenderBox
 
   bool get _hasUnselectedTabSurfaces => unselectedTabColor != null;
 
-  BorderRadius get _unselectedTabSurfaceRadius => switch (tabEdge) {
-    TabEdge.top => BorderRadius.only(
-      topLeft: tabBorderRadius.topLeft,
-      topRight: tabBorderRadius.topRight,
-    ),
-    TabEdge.bottom => BorderRadius.only(
-      bottomLeft: tabBorderRadius.bottomLeft,
-      bottomRight: tabBorderRadius.bottomRight,
-    ),
-    TabEdge.left => BorderRadius.only(
-      topLeft: tabBorderRadius.topLeft,
-      bottomLeft: tabBorderRadius.bottomLeft,
-    ),
-    TabEdge.right => BorderRadius.only(
-      topRight: tabBorderRadius.topRight,
-      bottomRight: tabBorderRadius.bottomRight,
-    ),
-  };
-
-  RRect _unselectedTabSurfaceRRect(int index) {
-    final gap = min(unselectedTabGap, _tabMetrics.length);
-    final start =
-        _tabLabelStart + index * _tabMetrics.length - scrollOffset + gap / 2;
-    final end = start + _tabMetrics.length - gap;
+  Path get _contentCutoutPath {
+    final horizontalExtent = size.width * 2;
+    final verticalExtent = size.height * 2;
     final rect = switch (tabEdge) {
-      TabEdge.top => Rect.fromLTRB(start, 0, end, _tabStripExtent),
-      TabEdge.bottom => Rect.fromLTRB(
-        start,
-        size.height - _tabStripExtent,
-        end,
-        size.height,
+      TabEdge.top => Rect.fromLTRB(
+        -size.width,
+        _tabStripExtent,
+        horizontalExtent,
+        verticalExtent,
       ),
-      TabEdge.left => Rect.fromLTRB(0, start, _tabStripExtent, end),
+      TabEdge.bottom => Rect.fromLTRB(
+        -size.width,
+        -size.height,
+        horizontalExtent,
+        size.height - _tabStripExtent,
+      ),
+      TabEdge.left => Rect.fromLTRB(
+        _tabStripExtent,
+        -size.height,
+        horizontalExtent,
+        verticalExtent,
+      ),
       TabEdge.right => Rect.fromLTRB(
+        -size.width,
+        -size.height,
         size.width - _tabStripExtent,
-        start,
-        size.width,
-        end,
+        verticalExtent,
       ),
     };
 
-    return RRect.fromRectAndCorners(
-      rect,
-      topLeft: _unselectedTabSurfaceRadius.topLeft,
-      topRight: _unselectedTabSurfaceRadius.topRight,
-      bottomLeft: _unselectedTabSurfaceRadius.bottomLeft,
-      bottomRight: _unselectedTabSurfaceRadius.bottomRight,
+    return Path()..addRect(rect);
+  }
+
+  Path _unselectedTabSurfacePath(int index) {
+    final (indicatorStart, indicatorEnd) = _getIndicatorBounds(
+      index.toDouble(),
     );
+    return Path.combine(
+      PathOperation.difference,
+      _getPathForIndicator(indicatorStart, indicatorEnd),
+      _contentCutoutPath,
+    );
+  }
+
+  bool _shouldPaintUnselectedTabSurface(int index) {
+    return index != controller.index || progress != controller.index;
   }
 
   int get _fadingChildAlpha {
@@ -2198,10 +2199,10 @@ class RenderTabFrame extends RenderBox
       canvas.clipRect(_tabLabelClipRect);
     }
     for (var index = 0; index < tabCount; index++) {
-      if (index == controller.index) {
+      if (!_shouldPaintUnselectedTabSurface(index)) {
         continue;
       }
-      canvas.drawRRect(_unselectedTabSurfaceRRect(index), paint);
+      canvas.drawPath(_unselectedTabSurfacePath(index), paint);
     }
     canvas.restore();
   }

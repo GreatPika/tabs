@@ -372,8 +372,7 @@ class Tabs extends StatefulWidget {
   ///
   /// When null, which is the default, tab labels keep their existing joined
   /// appearance. When configured, every tab strip uses this color for every
-  /// unselected label. The inner edge that meets the content frame remains
-  /// square.
+  /// unselected label while preserving the active tab's shape and radii.
   final Color? unselectedTabColor;
 
   /// Space between separate unselected-label surfaces.
