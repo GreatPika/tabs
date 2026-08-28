@@ -2044,30 +2044,22 @@ class RenderTabFrame extends RenderBox
 
   bool get _hasUnselectedTabSurfaces => unselectedTabColor != null;
 
-  Rect get _unselectedTabSurfaceBackgroundRect => switch (tabEdge) {
-    TabEdge.top => Rect.fromLTRB(
-      _tabLabelStart,
-      0,
-      _tabLabelEnd,
-      _tabStripExtent,
+  BorderRadius get _unselectedTabSurfaceRadius => switch (tabEdge) {
+    TabEdge.top => BorderRadius.only(
+      topLeft: tabBorderRadius.topLeft,
+      topRight: tabBorderRadius.topRight,
     ),
-    TabEdge.bottom => Rect.fromLTRB(
-      _tabLabelStart,
-      size.height - _tabStripExtent,
-      _tabLabelEnd,
-      size.height,
+    TabEdge.bottom => BorderRadius.only(
+      bottomLeft: tabBorderRadius.bottomLeft,
+      bottomRight: tabBorderRadius.bottomRight,
     ),
-    TabEdge.left => Rect.fromLTRB(
-      0,
-      _tabLabelStart,
-      _tabStripExtent,
-      _tabLabelEnd,
+    TabEdge.left => BorderRadius.only(
+      topLeft: tabBorderRadius.topLeft,
+      bottomLeft: tabBorderRadius.bottomLeft,
     ),
-    TabEdge.right => Rect.fromLTRB(
-      size.width - _tabStripExtent,
-      _tabLabelStart,
-      size.width,
-      _tabLabelEnd,
+    TabEdge.right => BorderRadius.only(
+      topRight: tabBorderRadius.topRight,
+      bottomRight: tabBorderRadius.bottomRight,
     ),
   };
 
@@ -2095,10 +2087,10 @@ class RenderTabFrame extends RenderBox
 
     return RRect.fromRectAndCorners(
       rect,
-      topLeft: tabBorderRadius.topLeft,
-      topRight: tabBorderRadius.topRight,
-      bottomLeft: tabBorderRadius.bottomLeft,
-      bottomRight: tabBorderRadius.bottomRight,
+      topLeft: _unselectedTabSurfaceRadius.topLeft,
+      topRight: _unselectedTabSurfaceRadius.topRight,
+      bottomLeft: _unselectedTabSurfaceRadius.bottomLeft,
+      bottomRight: _unselectedTabSurfaceRadius.bottomRight,
     );
   }
 
@@ -2194,9 +2186,10 @@ class RenderTabFrame extends RenderBox
       return;
     }
 
-    final activeColor = _backgroundColor;
     final paint = _backgroundPaint
-      ..color = activeColor.withAlpha((activeColor.a * frameAlpha).round());
+      ..color = configuredColor.withAlpha(
+        (configuredColor.a * frameAlpha).round(),
+      );
 
     canvas
       ..save()
@@ -2204,12 +2197,10 @@ class RenderTabFrame extends RenderBox
     if (_hasTabOverflow) {
       canvas.clipRect(_tabLabelClipRect);
     }
-    canvas.drawRect(_unselectedTabSurfaceBackgroundRect, paint);
-
-    paint.color = configuredColor.withAlpha(
-      (configuredColor.a * frameAlpha).round(),
-    );
     for (var index = 0; index < tabCount; index++) {
+      if (index == controller.index) {
+        continue;
+      }
       canvas.drawRRect(_unselectedTabSurfaceRRect(index), paint);
     }
     canvas.restore();

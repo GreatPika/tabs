@@ -31,7 +31,7 @@ void main() {
   });
 
   testWidgets(
-    'top and bottom edges paint rounded inactive surfaces with active gaps',
+    'top and bottom edges paint transparent gaps and square inner edges',
     (tester) async {
       const activeColor = Color(0xff1565c0);
       const inactiveColor = Color(0xffe65100);
@@ -84,18 +84,20 @@ void main() {
         await tester.pumpWidget(buildTabs(tabEdge));
 
         final y = tabEdge == TabEdge.top ? 20.0 : 140.0;
-        final cornerY = tabEdge == TabEdge.top ? 1.0 : 159.0;
+        final outerCornerY = tabEdge == TabEdge.top ? 1.0 : 159.0;
+        final innerEdgeY = tabEdge == TabEdge.top ? 39.0 : 120.0;
 
         expect(await pixel(Offset(100, y)), inactiveColor);
-        expect(await pixel(Offset(80, y)), activeColor);
-        expect(await pixel(Offset(160, y)), activeColor);
-        expect(await pixel(Offset(82, cornerY)), activeColor);
+        expect(await pixel(Offset(80, y)), Colors.white);
+        expect(await pixel(Offset(160, y)), Colors.white);
+        expect(await pixel(Offset(82, outerCornerY)), Colors.white);
+        expect(await pixel(Offset(100, innerEdgeY)), inactiveColor);
       }
     },
   );
 
   testWidgets(
-    'left and right edges paint rounded inactive surfaces with active gaps',
+    'left and right edges paint transparent gaps and square inner edges',
     (tester) async {
       const activeColor = Color(0xff1565c0);
       const inactiveColor = Color(0xffe65100);
@@ -149,13 +151,15 @@ void main() {
 
         final x = tabEdge == TabEdge.left ? 20.0 : 140.0;
         final roundedCorner = tabEdge == TabEdge.left
-            ? const Offset(1, 3)
-            : const Offset(159, 3);
+            ? const Offset(1, 83)
+            : const Offset(159, 83);
+        final innerEdgeX = tabEdge == TabEdge.left ? 39.0 : 120.0;
 
         expect(await pixel(Offset(x, 100)), inactiveColor);
-        expect(await pixel(Offset(x, 80)), activeColor);
-        expect(await pixel(Offset(x, 160)), activeColor);
-        expect(await pixel(roundedCorner), activeColor);
+        expect(await pixel(Offset(x, 80)), Colors.white);
+        expect(await pixel(Offset(x, 160)), Colors.white);
+        expect(await pixel(roundedCorner), Colors.white);
+        expect(await pixel(Offset(innerEdgeX, 100)), inactiveColor);
       }
     },
   );
@@ -260,7 +264,7 @@ void main() {
         position: position,
       );
 
-      expect(await pixel(const Offset(80, 20)), initialActiveColor);
+      expect(await pixel(const Offset(40, 20)), initialActiveColor);
       expect(await pixel(const Offset(120, 20)), inactiveColor);
 
       controller.animateTo(1, duration: const Duration(seconds: 1));
@@ -268,7 +272,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 500));
 
       expect(await pixel(const Offset(40, 20)), inactiveColor);
-      final transitionColor = await pixel(const Offset(80, 20));
+      final transitionColor = await pixel(const Offset(120, 20));
       expect(redOf(transitionColor), lessThan(redOf(initialActiveColor)));
       expect(redOf(transitionColor), greaterThan(redOf(finalActiveColor)));
       expect(blueOf(transitionColor), greaterThan(blueOf(initialActiveColor)));
@@ -277,7 +281,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 500));
 
       expect(await pixel(const Offset(40, 20)), inactiveColor);
-      expect(await pixel(const Offset(80, 20)), finalActiveColor);
+      expect(await pixel(const Offset(120, 20)), finalActiveColor);
     } finally {
       await tester.pumpWidget(const SizedBox.shrink());
       controller.dispose();
@@ -335,7 +339,7 @@ void main() {
           position: Offset(tabEdge == TabEdge.left ? 20 : 140, y),
         );
 
-        expect(await pixel(20), initialActiveColor);
+        expect(await pixel(40), initialActiveColor);
         expect(await pixel(120), inactiveColor);
 
         controller.animateTo(1, duration: const Duration(seconds: 1));
@@ -343,7 +347,7 @@ void main() {
         await tester.pump(const Duration(milliseconds: 500));
 
         expect(await pixel(40), inactiveColor);
-        final transitionColor = await pixel(80);
+        final transitionColor = await pixel(120);
         expect(redOf(transitionColor), lessThan(redOf(initialActiveColor)));
         expect(redOf(transitionColor), greaterThan(redOf(finalActiveColor)));
         expect(
@@ -355,13 +359,79 @@ void main() {
         await tester.pump(const Duration(milliseconds: 500));
 
         expect(await pixel(40), inactiveColor);
-        expect(await pixel(80), finalActiveColor);
+        expect(await pixel(120), finalActiveColor);
       } finally {
         await tester.pumpWidget(const SizedBox.shrink());
         controller.dispose();
       }
     }
   });
+
+  testWidgets(
+    'collapse animation does not reveal an inactive surface behind selection',
+    (tester) async {
+      const activeColor = Color(0xff1565c0);
+      const inactiveColor = Color(0xff263238);
+      const collapseKey = ValueKey('collapse-tabs');
+      final boundaryKey = GlobalKey();
+      var collapsed = false;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: RepaintBoundary(
+            key: boundaryKey,
+            child: ColoredBox(
+              color: Colors.white,
+              child: StatefulBuilder(
+                builder: (context, setState) => SizedBox(
+                  width: 240,
+                  height: 160,
+                  child: Tabs(
+                    collapsed: collapsed,
+                    collapseDuration: const Duration(seconds: 1),
+                    onCollapsedChanged: (value) {
+                      setState(() {
+                        collapsed = value;
+                      });
+                    },
+                    color: activeColor,
+                    unselectedTabColor: inactiveColor,
+                    borderRadius: BorderRadius.zero,
+                    tabBorderRadius: BorderRadius.zero,
+                    tabLeadingButtons: const [
+                      TabsActionButton(
+                        key: collapseKey,
+                        action: TabsActionButtonAction.toggleCollapse,
+                        icon: Icons.unfold_less,
+                      ),
+                    ],
+                    tabs: const [
+                      SizedBox.expand(),
+                      SizedBox.expand(),
+                      SizedBox.expand(),
+                    ],
+                    child: const SizedBox.expand(),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.byKey(collapseKey));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+
+      final selectedTabPixel = await readBoundaryPixel(
+        tester: tester,
+        boundary: find.byKey(boundaryKey),
+        position: const Offset(100, 20),
+      );
+      expect(selectedTabPixel, isNot(inactiveColor));
+      expect(redOf(selectedTabPixel), greaterThan(0));
+    },
+  );
 
   testWidgets('overflow scrolling keeps the selected surface visible', (
     tester,
