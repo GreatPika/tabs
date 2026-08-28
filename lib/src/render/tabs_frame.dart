@@ -1151,6 +1151,12 @@ class RenderTabFrame extends RenderBox
 
   double get _trailingActionLength => tabTrailingActionCount * tabExtent;
 
+  double get _leadingOuterButtonGap =>
+      tabLeadingActionCount == 0 ? 0.0 : tabButtonGap;
+
+  double get _trailingOuterButtonGap =>
+      tabTrailingActionCount == 0 ? 0.0 : tabButtonGap;
+
   double get _leadingButtonGap =>
       tabLeadingActionCount == 0 ? 0.0 : tabButtonGap;
 
@@ -1285,11 +1291,17 @@ class RenderTabFrame extends RenderBox
   // ---------------------------------------------------------------------------
 
   double get _tabLabelStart =>
-      _tabViewport.start + _leadingActionLength + _leadingButtonGap;
+      _tabViewport.start +
+      _leadingOuterButtonGap +
+      _leadingActionLength +
+      _leadingButtonGap;
 
   double get _tabLabelEnd => max(
     _tabLabelStart,
-    _tabViewport.end - _trailingActionLength - _trailingButtonGap,
+    _tabViewport.end -
+        _trailingOuterButtonGap -
+        _trailingActionLength -
+        _trailingButtonGap,
   );
 
   double get _tabLabelRange => max(0.0, _tabLabelEnd - _tabLabelStart);
@@ -1544,7 +1556,7 @@ class RenderTabFrame extends RenderBox
       child.layout(actionConstraints, parentUsesSize: true);
       final actionParentData = child.parentData as TabFrameParentData;
       actionParentData.offset = _getTabButtonOffset(
-        start: _tabViewport.start + index * tabExtent,
+        start: _tabViewport.start + _leadingOuterButtonGap + index * tabExtent,
         childSize: child.size,
       );
       if (index == collapsedActionIndex) {

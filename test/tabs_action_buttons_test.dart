@@ -90,12 +90,12 @@ void main() {
       final trailingRect = tester.getRect(find.byKey(trailingKey));
       final firstTabRect = tester.getRect(find.byKey(firstTabKey));
       final contentRect = tester.getRect(find.byKey(contentKey));
-      expect(leadingRect.left, tabsRect.left);
+      expect(leadingRect.left, tabsRect.left + buttonGap);
       expect(leadingRect.top, tabsRect.top);
       expect(leadingRect.size, const Size.square(50));
       expect(firstTabRect.left, leadingRect.right + buttonGap);
       expect(contentRect.top, leadingRect.bottom + buttonGap);
-      expect(trailingRect.right, tabsRect.right);
+      expect(trailingRect.right, tabsRect.right - buttonGap);
       expect(trailingRect.top, tabsRect.top);
       expect(trailingRect.size, const Size.square(50));
 
