@@ -207,7 +207,7 @@ class TabFrame extends MultiChildRenderObjectWidget {
   final Color? color;
   final List<Color>? colors;
   final Color? unselectedTabColor;
-  final BoxShadow? unselectedTabShadow;
+  final BorderSide? unselectedTabBorder;
   final double unselectedTabGap;
 
   // Semantics and input.
@@ -244,7 +244,6 @@ class TabFrame extends MultiChildRenderObjectWidget {
     required this.color,
     required this.colors,
     required this.unselectedTabColor,
-    required this.unselectedTabShadow,
     required this.unselectedTabGap,
     required this.semanticsLabel,
     required this.semanticsHint,
@@ -252,6 +251,7 @@ class TabFrame extends MultiChildRenderObjectWidget {
     required this.enabled,
     required this.enableFeedback,
     required this.textDirection,
+    this.unselectedTabBorder,
     super.key,
   }) : super(
          children: [
@@ -291,7 +291,7 @@ class TabFrame extends MultiChildRenderObjectWidget {
       color: color,
       colors: colors,
       unselectedTabColor: unselectedTabColor,
-      unselectedTabShadow: unselectedTabShadow,
+      unselectedTabBorder: unselectedTabBorder,
       unselectedTabGap: unselectedTabGap,
       semanticsLabel: semanticsLabel,
       semanticsHint: semanticsHint,
@@ -330,7 +330,7 @@ class TabFrame extends MultiChildRenderObjectWidget {
       ..color = color
       ..colors = colors
       ..unselectedTabColor = unselectedTabColor
-      ..unselectedTabShadow = unselectedTabShadow
+      ..unselectedTabBorder = unselectedTabBorder
       ..unselectedTabGap = unselectedTabGap
       ..semanticsLabel = semanticsLabel
       ..semanticsHint = semanticsHint
@@ -404,9 +404,9 @@ class TabFrame extends MultiChildRenderObjectWidget {
     properties.add(IterableProperty<Color>('colors', colors));
     properties.add(ColorProperty('unselectedTabColor', unselectedTabColor));
     properties.add(
-      DiagnosticsProperty<BoxShadow?>(
-        'unselectedTabShadow',
-        unselectedTabShadow,
+      DiagnosticsProperty<BorderSide?>(
+        'unselectedTabBorder',
+        unselectedTabBorder,
       ),
     );
     properties.add(DoubleProperty('unselectedTabGap', unselectedTabGap));
@@ -475,13 +475,13 @@ class RenderTabFrame extends RenderBox
     required Color? color,
     required List<Color>? colors,
     required Color? unselectedTabColor,
-    required BoxShadow? unselectedTabShadow,
     required double unselectedTabGap,
     required String? semanticsLabel,
     required String? semanticsHint,
     required String Function(int index, int count)? semanticsValueBuilder,
     required bool enabled,
     required TextDirection textDirection,
+    BorderSide? unselectedTabBorder,
   }) : _controller = controller,
        _progressAnimation = progressAnimation,
        _progress = progressAnimation.value,
@@ -510,7 +510,7 @@ class RenderTabFrame extends RenderBox
        _color = color,
        _colors = colors,
        _unselectedTabColor = unselectedTabColor,
-       _unselectedTabShadow = unselectedTabShadow,
+       _unselectedTabBorder = unselectedTabBorder,
        _unselectedTabGap = unselectedTabGap,
        _semanticsLabel = semanticsLabel,
        _semanticsHint = semanticsHint,
@@ -885,11 +885,11 @@ class RenderTabFrame extends RenderBox
     markNeedsPaint();
   }
 
-  BoxShadow? get unselectedTabShadow => _unselectedTabShadow;
-  BoxShadow? _unselectedTabShadow;
-  set unselectedTabShadow(BoxShadow? value) {
-    if (value == _unselectedTabShadow) return;
-    _unselectedTabShadow = value;
+  BorderSide? get unselectedTabBorder => _unselectedTabBorder;
+  BorderSide? _unselectedTabBorder;
+  set unselectedTabBorder(BorderSide? value) {
+    if (value == _unselectedTabBorder) return;
+    _unselectedTabBorder = value;
     markNeedsPaint();
   }
 
@@ -1019,6 +1019,7 @@ class RenderTabFrame extends RenderBox
   late TapGestureRecognizer _tapGestureRecognizer;
   DragGestureRecognizer? _dragGestureRecognizer;
   final Paint _backgroundPaint = Paint();
+  final Paint _unselectedTabBorderPaint = Paint();
 
   void _createDragGestureRecognizer() {
     if (tabAxis == Axis.vertical) {
@@ -2072,26 +2073,18 @@ class RenderTabFrame extends RenderBox
         Colors.transparent;
   }
 
-  bool get _hasUnselectedTabSurfaces =>
-      unselectedTabColor != null &&
-      (tabEdge == TabEdge.top || tabEdge == TabEdge.bottom);
+  bool get _hasUnselectedTabSurfaces => unselectedTabColor != null;
 
-  ({BoxShadow shadow, Paint paint})? _unselectedTabShadowPaint(int frameAlpha) {
-    final shadow = unselectedTabShadow;
-    if (shadow == null) {
+  Paint? _unselectedTabBorderPaintFor(int frameAlpha) {
+    final side = unselectedTabBorder;
+    if (side == null || side.style == BorderStyle.none || side.width == 0) {
       return null;
     }
 
-    return (
-      shadow: shadow,
-      paint: shadow
-          .copyWith(
-            color: shadow.color.withAlpha(
-              (shadow.color.a * frameAlpha).round(),
-            ),
-          )
-          .toPaint(),
-    );
+    return _unselectedTabBorderPaint
+      ..color = side.color.withAlpha((side.color.a * frameAlpha).round())
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = side.width;
   }
 
   Path get _contentCutoutPath {
@@ -2253,7 +2246,7 @@ class RenderTabFrame extends RenderBox
       ..color = configuredColor.withAlpha(
         (configuredColor.a * frameAlpha).round(),
       );
-    final shadow = _unselectedTabShadowPaint(frameAlpha);
+    final border = _unselectedTabBorderPaintFor(frameAlpha);
     final paths = _cachedUnselectedTabSurfacePaths;
 
     canvas
@@ -2262,34 +2255,25 @@ class RenderTabFrame extends RenderBox
     if (_hasTabOverflow) {
       canvas.clipRect(_tabLabelClipRect);
     }
-    _paintUnselectedTabShadow(canvas, paths, shadow);
-    _paintUnselectedTabPaths(canvas, paths, paint);
-    canvas.restore();
-  }
-
-  void _paintUnselectedTabShadow(
-    Canvas canvas,
-    List<Path?> paths,
-    ({BoxShadow shadow, Paint paint})? shadow,
-  ) {
-    if (shadow == null) {
-      return;
-    }
-
-    canvas
-      ..save()
-      ..translate(shadow.shadow.offset.dx, shadow.shadow.offset.dy);
-    _paintUnselectedTabPaths(canvas, paths, shadow.paint);
-    canvas.restore();
-  }
-
-  void _paintUnselectedTabPaths(Canvas canvas, List<Path?> paths, Paint paint) {
     for (var index = 0; index < tabCount; index++) {
       final path = paths[index];
       if (!_shouldPaintUnselectedTabSurface(index) || path == null) {
         continue;
       }
-      canvas.drawPath(path, paint);
+      _paintUnselectedTabSurface(canvas, path, paint, border);
+    }
+    canvas.restore();
+  }
+
+  void _paintUnselectedTabSurface(
+    Canvas canvas,
+    Path path,
+    Paint paint,
+    Paint? border,
+  ) {
+    canvas.drawPath(path, paint);
+    if (border != null) {
+      canvas.drawPath(path, border);
     }
   }
 
@@ -2550,9 +2534,9 @@ class RenderTabFrame extends RenderBox
     properties.add(IterableProperty<Color>('colors', colors));
     properties.add(ColorProperty('unselectedTabColor', unselectedTabColor));
     properties.add(
-      DiagnosticsProperty<BoxShadow?>(
-        'unselectedTabShadow',
-        unselectedTabShadow,
+      DiagnosticsProperty<BorderSide?>(
+        'unselectedTabBorder',
+        unselectedTabBorder,
       ),
     );
     properties.add(DoubleProperty('unselectedTabGap', unselectedTabGap));

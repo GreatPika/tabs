@@ -184,7 +184,7 @@ class Tabs extends StatefulWidget {
     this.color,
     this.colors,
     this.unselectedTabColor,
-    this.unselectedTabShadow,
+    this.unselectedTabBorder,
     this.unselectedTabGap = 2.0,
     this.transitionBuilder,
     this.semanticsLabel,
@@ -369,17 +369,17 @@ class Tabs extends StatefulWidget {
   /// Must not be set if [color] is provided.
   final List<Color>? colors;
 
-  /// Fills unselected labels as distinct tab surfaces on the top or bottom edge.
+  /// Fills unselected labels as distinct tab surfaces on every tab edge.
   ///
   /// When null, which is the default, tab labels keep their existing joined
-  /// appearance. When configured, top and bottom tab strips use this color for
-  /// every unselected label while preserving the active tab's shape and radii.
+  /// appearance. When configured, every tab strip uses this color for each
+  /// unselected label while preserving the active tab's shape and radii.
   final Color? unselectedTabColor;
 
-  /// Draws a shadow around separate unselected-label surfaces.
+  /// Draws a uniform outline around separate unselected-label surfaces.
   ///
   /// Applied only when [unselectedTabColor] is configured. Defaults to null.
-  final BoxShadow? unselectedTabShadow;
+  final BorderSide? unselectedTabBorder;
 
   /// Space between separate unselected-label surfaces.
   ///
@@ -548,9 +548,9 @@ class Tabs extends StatefulWidget {
     properties.add(IterableProperty<Color>('colors', colors));
     properties.add(ColorProperty('unselectedTabColor', unselectedTabColor));
     properties.add(
-      DiagnosticsProperty<BoxShadow?>(
-        'unselectedTabShadow',
-        unselectedTabShadow,
+      DiagnosticsProperty<BorderSide?>(
+        'unselectedTabBorder',
+        unselectedTabBorder,
       ),
     );
     properties.add(DoubleProperty('unselectedTabGap', unselectedTabGap));
@@ -945,7 +945,7 @@ class _TabsState extends State<Tabs> with TickerProviderStateMixin {
       color: widget.color,
       colors: widget.colors,
       unselectedTabColor: widget.unselectedTabColor,
-      unselectedTabShadow: widget.unselectedTabShadow,
+      unselectedTabBorder: widget.unselectedTabBorder,
       unselectedTabGap: widget.unselectedTabGap,
       semanticsLabel: widget.semanticsLabel,
       semanticsHint: widget.semanticsHint,

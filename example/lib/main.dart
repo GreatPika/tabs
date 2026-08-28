@@ -206,12 +206,10 @@ class _ExamplePageState extends State<ExamplePage>
         Color(0xffa275e3),
         Color(0xff9aebed),
       ],
-      unselectedTabColor: const Color(0xffb0bec5),
-      unselectedTabShadow: const BoxShadow(
-        color: Color.fromARGB(255, 107, 107, 107),
-        blurRadius: 1,
-        offset: Offset(0, 0),
-        blurStyle: BlurStyle.outer,
+      unselectedTabColor: const Color.fromARGB(255, 225, 225, 225),
+      unselectedTabBorder: const BorderSide(
+        color: Color.fromARGB(255, 197, 197, 197),
+        width: 1,
       ),
       unselectedTabGap: 4,
       selectedTextStyle: textTheme.bodyMedium?.copyWith(fontSize: 15.0),

@@ -20,14 +20,13 @@ void main() {
     final firstTabs = tester.widget<Tabs>(find.byType(Tabs).first);
     expect(firstTabs.tabEdge, TabEdge.top);
     expect(firstTabs.border, isNull);
-    expect(firstTabs.unselectedTabColor, const Color(0xffb0bec5));
     expect(
-      firstTabs.unselectedTabShadow,
-      const BoxShadow(
-        color: Color.fromARGB(255, 107, 107, 107),
-        blurRadius: 1,
-        blurStyle: BlurStyle.outer,
-      ),
+      firstTabs.unselectedTabColor,
+      const Color.fromARGB(255, 225, 225, 225),
+    );
+    expect(
+      firstTabs.unselectedTabBorder,
+      isA<BorderSide>().having((side) => side.width, 'width', 1),
     );
     expect(firstTabs.unselectedTextStyle?.color, Colors.black);
     expect(firstTabs.unselectedTabGap, 4);

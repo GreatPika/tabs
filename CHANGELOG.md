@@ -2,10 +2,10 @@
 
 ## 5.2.0
 
-- Add opt-in `unselectedTabColor` surfaces for unselected horizontal tab
-  labels, using the same joined contour and radius settings as the active tab.
+- Add opt-in `unselectedTabColor` surfaces for unselected labels on every tab
+  edge, using the same joined contour and radius settings as the active tab.
 - Add `unselectedTabGap`, with transparent gaps between unselected tab labels.
-- Add opt-in `unselectedTabShadow` for separating inactive tab labels from
+- Add opt-in `unselectedTabBorder` for separating inactive tab labels from
   their background.
 - Keep a tab's unselected color throughout its selection transition and avoid
   revealing an inactive surface behind the active tab while labels collapse.
