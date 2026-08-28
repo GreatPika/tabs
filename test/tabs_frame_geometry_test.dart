@@ -61,48 +61,122 @@ class _ProbeBox extends SingleChildRenderObjectWidget {
 // regressions together because they share the RenderTabFrame geometry contract.
 // ignore: cyclomatic-complexity, halstead-volume, source-lines-of-code, maintainability-index
 void main() {
-  testWidgets(
-    'border radius keeps physical bottom corners for top-edge tabs',
-    (tester) async {
-      final boundaryKey = GlobalKey();
+  testWidgets('border outlines the joined active tab and content shape', (
+    tester,
+  ) async {
+    final boundaryKey = GlobalKey();
 
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Center(
-            child: RepaintBoundary(
-              key: boundaryKey,
-              child: ColoredBox(
-                color: Colors.white,
-                child: SizedBox(
-                  width: 120,
-                  height: 100,
-                  child: Tabs(
-                    color: Colors.red,
-                    tabExtent: 30,
-                    borderRadius: const BorderRadius.only(
-                      bottomLeft: Radius.circular(24),
-                    ),
-                    tabBorderRadius: BorderRadius.zero,
-                    tabs: const [SizedBox.expand()],
-                    child: const SizedBox.expand(),
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Center(
+          child: RepaintBoundary(
+            key: boundaryKey,
+            child: ColoredBox(
+              color: Colors.white,
+              child: SizedBox(
+                width: 120,
+                height: 100,
+                child: Tabs(
+                  color: Colors.cyan,
+                  border: const Border.fromBorderSide(
+                    BorderSide(color: Colors.red, width: 4),
                   ),
+                  borderRadius: BorderRadius.zero,
+                  tabBorderRadius: BorderRadius.zero,
+                  tabExtent: 30,
+                  tabs: const [SizedBox.expand(), SizedBox.expand()],
+                  child: const SizedBox.expand(),
                 ),
               ),
             ),
           ),
         ),
-      );
+      ),
+    );
 
-      expect(
-        await readBoundaryPixel(
-          tester: tester,
-          boundary: find.byKey(boundaryKey),
-          position: const Offset(1, 99),
+    expect(
+      (await readBoundaryPixel(
+        tester: tester,
+        boundary: find.byKey(boundaryKey),
+        position: const Offset(0, 60),
+      )).toARGB32(),
+      Colors.red.toARGB32(),
+    );
+    expect(
+      (await readBoundaryPixel(
+        tester: tester,
+        boundary: find.byKey(boundaryKey),
+        position: const Offset(3, 60),
+      )).toARGB32(),
+      Colors.red.toARGB32(),
+    );
+    expect(
+      (await readBoundaryPixel(
+        tester: tester,
+        boundary: find.byKey(boundaryKey),
+        position: const Offset(5, 60),
+      )).toARGB32(),
+      Colors.cyan.toARGB32(),
+    );
+    expect(
+      (await readBoundaryPixel(
+        tester: tester,
+        boundary: find.byKey(boundaryKey),
+        position: const Offset(30, 0),
+      )).toARGB32(),
+      Colors.red.toARGB32(),
+    );
+    expect(
+      (await readBoundaryPixel(
+        tester: tester,
+        boundary: find.byKey(boundaryKey),
+        position: const Offset(90, 0),
+      )).toARGB32(),
+      Colors.white.toARGB32(),
+    );
+  });
+
+  testWidgets('border radius keeps physical bottom corners for top-edge tabs', (
+    tester,
+  ) async {
+    final boundaryKey = GlobalKey();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Center(
+          child: RepaintBoundary(
+            key: boundaryKey,
+            child: ColoredBox(
+              color: Colors.white,
+              child: SizedBox(
+                width: 120,
+                height: 100,
+                child: Tabs(
+                  color: Colors.red,
+                  tabExtent: 30,
+                  borderRadius: const BorderRadius.only(
+                    bottomLeft: Radius.circular(24),
+                  ),
+                  tabBorderRadius: BorderRadius.zero,
+                  tabs: const [SizedBox.expand()],
+                  child: const SizedBox.expand(),
+                ),
+              ),
+            ),
+          ),
         ),
-        Colors.white,
-      );
-    },
-  );
+      ),
+    );
+
+    expect(
+      await readBoundaryPixel(
+        tester: tester,
+        boundary: find.byKey(boundaryKey),
+        position: const Offset(1, 99),
+      ),
+      Colors.white,
+    );
+  });
 
   testWidgets('collapsed tabs keep strip footprint and action edge anchor', (
     tester,
@@ -827,6 +901,7 @@ void main() {
                 collapsedActionIndex: null,
                 borderRadius: BorderRadius.zero,
                 tabBorderRadius: BorderRadius.zero,
+                border: null,
                 tabExtent: 40,
                 tabEdge: TabEdge.top,
                 tabAxis: Axis.horizontal,
