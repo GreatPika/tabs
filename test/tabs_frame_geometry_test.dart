@@ -912,6 +912,7 @@ void main() {
                 color: Colors.white,
                 colors: const [Color(0xffb71c1c), Color(0xff1b5e20)],
                 unselectedTabColor: null,
+                unselectedTabShadow: null,
                 unselectedTabGap: 2,
                 semanticsLabel: null,
                 semanticsHint: null,

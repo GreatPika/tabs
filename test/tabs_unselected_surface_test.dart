@@ -16,6 +16,7 @@ void main() {
     );
 
     expect(tabs.unselectedTabColor, isNull);
+    expect(tabs.unselectedTabShadow, isNull);
     expect(tabs.unselectedTabGap, 2);
   });
 
@@ -91,66 +92,119 @@ void main() {
     },
   );
 
-  testWidgets(
-    'left and right edges paint inactive surfaces with transparent gaps',
-    (tester) async {
-      const activeColor = Color(0xff1565c0);
-      const inactiveColor = Color(0xffe65100);
-      final boundaryKey = GlobalKey();
+  testWidgets('left and right edges keep unselected labels joined', (
+    tester,
+  ) async {
+    const activeColor = Color(0xff1565c0);
+    final boundaryKey = GlobalKey();
 
-      Widget buildTabs(TabEdge tabEdge) {
-        return MaterialApp(
-          home: RepaintBoundary(
-            key: boundaryKey,
-            child: ColoredBox(
-              color: Colors.white,
-              child: Align(
-                alignment: Alignment.topLeft,
-                child: SizedBox(
-                  width: 160,
-                  height: 240,
-                  child: Tabs(
-                    color: activeColor,
-                    unselectedTabColor: inactiveColor,
-                    unselectedTabGap: 4,
-                    tabEdge: tabEdge,
-                    tabExtent: 40,
-                    borderRadius: BorderRadius.zero,
-                    tabBorderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(12),
-                      topRight: Radius.circular(8),
-                    ),
-                    enableFeedback: false,
-                    tabs: const [
-                      SizedBox.expand(),
-                      SizedBox.expand(),
-                      SizedBox.expand(),
-                    ],
-                    child: const SizedBox.expand(),
+    Widget buildTabs(TabEdge tabEdge) {
+      return MaterialApp(
+        home: RepaintBoundary(
+          key: boundaryKey,
+          child: ColoredBox(
+            color: Colors.white,
+            child: Align(
+              alignment: Alignment.topLeft,
+              child: SizedBox(
+                width: 160,
+                height: 240,
+                child: Tabs(
+                  color: activeColor,
+                  unselectedTabColor: Colors.black,
+                  unselectedTabGap: 4,
+                  tabEdge: tabEdge,
+                  tabExtent: 40,
+                  borderRadius: BorderRadius.zero,
+                  tabBorderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(12),
+                    topRight: Radius.circular(8),
                   ),
+                  enableFeedback: false,
+                  tabs: const [
+                    SizedBox.expand(),
+                    SizedBox.expand(),
+                    SizedBox.expand(),
+                  ],
+                  child: const SizedBox.expand(),
                 ),
               ),
             ),
           ),
-        );
-      }
-
-      Future<Color> pixel(Offset position) => readBoundaryPixel(
-        tester: tester,
-        boundary: find.byKey(boundaryKey),
-        position: position,
+        ),
       );
+    }
 
-      for (final tabEdge in [TabEdge.left, TabEdge.right]) {
-        await tester.pumpWidget(buildTabs(tabEdge));
+    Future<Color> pixel(Offset position) => readBoundaryPixel(
+      tester: tester,
+      boundary: find.byKey(boundaryKey),
+      position: position,
+    );
 
-        final x = tabEdge == TabEdge.left ? 20.0 : 140.0;
-        expect(await pixel(Offset(x, 100)), inactiveColor);
-        expect(await pixel(Offset(x, 80)), Colors.white);
-        expect(await pixel(Offset(x, 160)), Colors.white);
-      }
-    },
-  );
+    for (final tabEdge in [TabEdge.left, TabEdge.right]) {
+      await tester.pumpWidget(buildTabs(tabEdge));
+
+      final x = tabEdge == TabEdge.left ? 20.0 : 140.0;
+      expect(await pixel(Offset(x, 100)), Colors.white);
+      expect(await pixel(Offset(x, 80)), Colors.white);
+      expect(await pixel(Offset(x, 160)), Colors.white);
+    }
+  });
+
+  testWidgets('shadow separates unselected horizontal labels', (tester) async {
+    final boundaryKey = GlobalKey();
+    final shadowsWereDisabled = debugDisableShadows;
+    debugDisableShadows = false;
+
+    Future<Color> pixel(Offset position) => readBoundaryPixel(
+      tester: tester,
+      boundary: find.byKey(boundaryKey),
+      position: position,
+    );
+
+    Widget buildTabs(BoxShadow? shadow) {
+      return MaterialApp(
+        home: RepaintBoundary(
+          key: boundaryKey,
+          child: ColoredBox(
+            color: Colors.white,
+            child: Align(
+              alignment: Alignment.topLeft,
+              child: SizedBox(
+                width: 240,
+                height: 160,
+                child: Tabs(
+                  color: const Color(0xff1565c0),
+                  unselectedTabColor: const Color(0xffb0bec5),
+                  unselectedTabShadow: shadow,
+                  unselectedTabGap: 4,
+                  tabExtent: 40,
+                  borderRadius: BorderRadius.zero,
+                  tabBorderRadius: BorderRadius.zero,
+                  enableFeedback: false,
+                  tabs: const [
+                    SizedBox.expand(),
+                    SizedBox.expand(),
+                    SizedBox.expand(),
+                  ],
+                  child: const SizedBox.expand(),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    const shadow = BoxShadow(blurRadius: 2, blurStyle: BlurStyle.outer);
+
+    await tester.pumpWidget(buildTabs(shadow));
+    expect(await pixel(const Offset(81, 20)), isNot(Colors.white));
+
+    await tester.pumpWidget(buildTabs(null));
+    expect(await pixel(const Offset(81, 20)), Colors.white);
+    debugDisableShadows = shadowsWereDisabled;
+  });
 
   testWidgets(
     'unconfigured inactive surfaces preserve the existing tab strip',
@@ -275,87 +329,6 @@ void main() {
     } finally {
       await tester.pumpWidget(const SizedBox.shrink());
       controller.dispose();
-    }
-  });
-
-  testWidgets('vertical selection animates inactive surfaces with the frame', (
-    tester,
-  ) async {
-    const initialActiveColor = Color(0xffd32f2f);
-    const finalActiveColor = Color(0xff1565c0);
-    const inactiveColor = Color(0xffe65100);
-    final boundaryKey = GlobalKey();
-
-    for (final tabEdge in [TabEdge.left, TabEdge.right]) {
-      final controller = TabController(length: 2, vsync: tester);
-
-      try {
-        await tester.pumpWidget(
-          MaterialApp(
-            home: RepaintBoundary(
-              key: boundaryKey,
-              child: ColoredBox(
-                color: Colors.white,
-                child: Align(
-                  alignment: Alignment.topLeft,
-                  child: SizedBox(
-                    width: 160,
-                    height: 160,
-                    child: Tabs(
-                      controller: controller,
-                      duration: const Duration(seconds: 1),
-                      curve: Curves.linear,
-                      colors: const [initialActiveColor, finalActiveColor],
-                      unselectedTabColor: inactiveColor,
-                      unselectedTabGap: 4,
-                      tabEdge: tabEdge,
-                      tabExtent: 40,
-                      borderRadius: BorderRadius.zero,
-                      tabBorderRadius: BorderRadius.zero,
-                      enableFeedback: false,
-                      tabs: const [SizedBox.expand(), SizedBox.expand()],
-                      child: const SizedBox.expand(),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        );
-
-        Future<Color> pixel(double y) => readBoundaryPixel(
-          tester: tester,
-          boundary: find.byKey(boundaryKey),
-          position: Offset(tabEdge == TabEdge.left ? 20 : 140, y),
-        );
-
-        expect(await pixel(40), initialActiveColor);
-        expect(await pixel(120), inactiveColor);
-
-        controller.animateTo(1, duration: const Duration(seconds: 1));
-        await tester.pump();
-
-        expect(await pixel(120), inactiveColor);
-        await tester.pump(const Duration(milliseconds: 500));
-
-        expect(await pixel(40), inactiveColor);
-        final transitionColor = await pixel(120);
-        expect(redOf(transitionColor), lessThan(redOf(initialActiveColor)));
-        expect(redOf(transitionColor), greaterThan(redOf(finalActiveColor)));
-        expect(
-          blueOf(transitionColor),
-          greaterThan(blueOf(initialActiveColor)),
-        );
-        expect(blueOf(transitionColor), lessThan(blueOf(finalActiveColor)));
-
-        await tester.pump(const Duration(milliseconds: 500));
-
-        expect(await pixel(40), inactiveColor);
-        expect(await pixel(120), finalActiveColor);
-      } finally {
-        await tester.pumpWidget(const SizedBox.shrink());
-        controller.dispose();
-      }
     }
   });
 

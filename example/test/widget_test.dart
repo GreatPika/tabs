@@ -12,14 +12,24 @@ void main() {
     expect(find.text('Image 1'), findsOneWidget);
   });
 
-  testWidgets('first example shows separate inactive tab-label surfaces', (
+  testWidgets('first example shows gray inactive tab-label surfaces', (
     tester,
   ) async {
     await tester.pumpWidget(const MyApp());
 
     final firstTabs = tester.widget<Tabs>(find.byType(Tabs).first);
     expect(firstTabs.tabEdge, TabEdge.top);
-    expect(firstTabs.unselectedTabColor, const Color(0xff263238));
+    expect(firstTabs.border, isNull);
+    expect(firstTabs.unselectedTabColor, const Color(0xffb0bec5));
+    expect(
+      firstTabs.unselectedTabShadow,
+      const BoxShadow(
+        color: Color.fromARGB(255, 107, 107, 107),
+        blurRadius: 1,
+        blurStyle: BlurStyle.outer,
+      ),
+    );
+    expect(firstTabs.unselectedTextStyle?.color, Colors.black);
     expect(firstTabs.unselectedTabGap, 4);
   });
 
