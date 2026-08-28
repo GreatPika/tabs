@@ -169,6 +169,7 @@ class Tabs extends StatefulWidget {
     this.childPadding = EdgeInsets.zero,
     this.borderRadius = const BorderRadius.all(Radius.circular(12.0)),
     this.tabBorderRadius = const BorderRadius.all(Radius.circular(12.0)),
+    this.border,
     this.tabExtent = 50.0,
     this.tabEdge = TabEdge.top,
     this.tabsStart = 0.0,
@@ -275,6 +276,12 @@ class Tabs extends StatefulWidget {
   ///
   /// Defaults to [BorderRadius.all(Radius.circular(12.0))]
   final BorderRadius tabBorderRadius;
+
+  /// Draws an outline around the active tab and its content as one shape.
+  ///
+  /// Use a uniform border such as [Border.all] so the color and thickness stay
+  /// consistent around the custom tab-frame contour. Defaults to null.
+  final Border? border;
 
   /// Sets the padding to be applied around all [children].
   ///
@@ -462,6 +469,15 @@ class Tabs extends StatefulWidget {
     return true;
   }
 
+  bool _debugAssertBorderConfiguration() {
+    final configuredBorder = border;
+    if (configuredBorder != null && !configuredBorder.isUniform) {
+      throw FlutterError('border must use the same BorderSide on every edge.');
+    }
+
+    return true;
+  }
+
   @override
   // Diagnostics mirror the public constructor so callers can inspect every
   // configured option from one debug node.
@@ -477,6 +493,7 @@ class Tabs extends StatefulWidget {
     properties.add(
       DiagnosticsProperty<BorderRadius>('tabBorderRadius', tabBorderRadius),
     );
+    properties.add(DiagnosticsProperty<Border?>('border', border));
     properties.add(
       DiagnosticsProperty<EdgeInsets>('childPadding', childPadding),
     );
@@ -860,11 +877,15 @@ class _TabsState extends State<Tabs> with TickerProviderStateMixin {
   @override
   // Keep the widget-to-render handoff in one place so every public Tabs input
   // remains auditable against the TabFrame constructor.
-  // ignore: halstead-volume
+  // ignore: halstead-volume, source-lines-of-code
   Widget build(BuildContext context) {
     assert(
       widget._debugAssertCollapseToggleConfiguration(),
       'Tabs collapse action configuration must be valid.',
+    );
+    assert(
+      widget._debugAssertBorderConfiguration(),
+      'Tabs border configuration must be valid.',
     );
 
     return TabFrame(
@@ -881,6 +902,7 @@ class _TabsState extends State<Tabs> with TickerProviderStateMixin {
       collapsedActionIndex: _collapseToggleActionIndex,
       borderRadius: widget.borderRadius,
       tabBorderRadius: widget.tabBorderRadius,
+      border: widget.border,
       tabExtent: widget.tabExtent,
       tabEdge: widget.tabEdge,
       tabAxis:

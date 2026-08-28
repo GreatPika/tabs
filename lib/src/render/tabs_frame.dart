@@ -194,6 +194,7 @@ class TabFrame extends MultiChildRenderObjectWidget {
   final double tabButtonGap;
   final BorderRadius borderRadius;
   final BorderRadius tabBorderRadius;
+  final Border? border;
   final double tabExtent;
   final TabEdge tabEdge;
   final Axis tabAxis;
@@ -229,6 +230,7 @@ class TabFrame extends MultiChildRenderObjectWidget {
     required this.tabButtonGap,
     required this.borderRadius,
     required this.tabBorderRadius,
+    required this.border,
     required this.tabExtent,
     required this.tabEdge,
     required this.tabAxis,
@@ -272,6 +274,7 @@ class TabFrame extends MultiChildRenderObjectWidget {
       onTapFeedback: _onTapFeedbackOf(context),
       borderRadius: borderRadius,
       tabBorderRadius: tabBorderRadius,
+      border: border,
       tabExtent: tabExtent,
       tabEdge: tabEdge,
       tabAxis: tabAxis,
@@ -307,6 +310,7 @@ class TabFrame extends MultiChildRenderObjectWidget {
       ..onTapFeedback = _onTapFeedbackOf(context)
       ..borderRadius = borderRadius
       ..tabBorderRadius = tabBorderRadius
+      ..border = border
       ..tabExtent = tabExtent
       ..tabEdge = tabEdge
       ..tabAxis = tabAxis
@@ -374,6 +378,7 @@ class TabFrame extends MultiChildRenderObjectWidget {
     properties.add(
       DiagnosticsProperty<BorderRadius>('tabBorderRadius', tabBorderRadius),
     );
+    properties.add(DiagnosticsProperty<Border?>('border', border));
     properties.add(DoubleProperty('tabExtent', tabExtent));
     properties.add(EnumProperty<TabEdge>('tabEdge', tabEdge));
     properties.add(EnumProperty<Axis>('tabAxis', tabAxis));
@@ -439,6 +444,7 @@ class RenderTabFrame extends RenderBox
     required VoidCallback? onTapFeedback,
     required BorderRadius borderRadius,
     required BorderRadius tabBorderRadius,
+    required Border? border,
     required double tabExtent,
     required TabEdge tabEdge,
     required Axis tabAxis,
@@ -470,6 +476,7 @@ class RenderTabFrame extends RenderBox
        _onTapFeedback = onTapFeedback,
        _borderRadius = borderRadius,
        _tabBorderRadius = tabBorderRadius,
+       _border = border,
        _tabExtent = tabExtent,
        _tabEdge = tabEdge,
        _tabAxis = tabAxis,
@@ -744,6 +751,14 @@ class RenderTabFrame extends RenderBox
     if (value == _tabBorderRadius) return;
     _tabBorderRadius = value;
     markNeedsLayout();
+  }
+
+  Border? get border => _border;
+  Border? _border;
+  set border(Border? value) {
+    if (value == _border) return;
+    _border = value;
+    markNeedsPaint();
   }
 
   double get tabExtent => _tabExtent;
@@ -1181,13 +1196,13 @@ class RenderTabFrame extends RenderBox
       final width = constraints.hasBoundedWidth
           ? constraints.maxWidth
           : tabExtent;
-      return constraints.constrain(Size(width, tabExtent));
+      return constraints.constrain(Size(width, _tabStripExtent));
     }
 
     final height = constraints.hasBoundedHeight
         ? constraints.maxHeight
         : tabExtent;
-    return constraints.constrain(Size(tabExtent, height));
+    return constraints.constrain(Size(_tabStripExtent, height));
   }
 
   double _lerpDimension(double expanded, double collapsed) {
@@ -1204,23 +1219,35 @@ class RenderTabFrame extends RenderBox
   Offset _getCollapsedActionOffset(RenderBox action) {
     final actionIndex = collapsedActionIndex ?? 0;
     final isTrailingAction = actionIndex >= tabLeadingActionCount;
+    final outerGap = tabButtonGap;
 
     switch (tabEdge) {
       case TabEdge.left:
         return Offset(
           0,
-          isTrailingAction ? size.height - action.size.height : 0,
+          isTrailingAction
+              ? size.height - action.size.height - outerGap
+              : outerGap,
         );
       case TabEdge.top:
-        return Offset(isTrailingAction ? size.width - action.size.width : 0, 0);
+        return Offset(
+          isTrailingAction
+              ? size.width - action.size.width - outerGap
+              : outerGap,
+          0,
+        );
       case TabEdge.right:
         return Offset(
           size.width - action.size.width,
-          isTrailingAction ? size.height - action.size.height : 0,
+          isTrailingAction
+              ? size.height - action.size.height - outerGap
+              : outerGap,
         );
       case TabEdge.bottom:
         return Offset(
-          isTrailingAction ? size.width - action.size.width : 0,
+          isTrailingAction
+              ? size.width - action.size.width - outerGap
+              : outerGap,
           size.height - action.size.height,
         );
     }
@@ -1614,7 +1641,7 @@ class RenderTabFrame extends RenderBox
   @override
   double computeMinIntrinsicWidth(double height) {
     if (_isFullyCollapsed) {
-      return tabExtent;
+      return tabAxis == Axis.horizontal ? tabExtent : _tabStripExtent;
     }
 
     final childMinIntrinsicWidth =
@@ -1628,7 +1655,7 @@ class RenderTabFrame extends RenderBox
   @override
   double computeMaxIntrinsicWidth(double height) {
     if (_isFullyCollapsed) {
-      return tabExtent;
+      return tabAxis == Axis.horizontal ? tabExtent : _tabStripExtent;
     }
 
     final childMaxIntrinsicWidth =
@@ -1642,7 +1669,7 @@ class RenderTabFrame extends RenderBox
   @override
   double computeMinIntrinsicHeight(double width) {
     if (_isFullyCollapsed) {
-      return tabExtent;
+      return tabAxis == Axis.horizontal ? _tabStripExtent : tabExtent;
     }
 
     final childMinIntrinsicHeight =
@@ -1656,7 +1683,7 @@ class RenderTabFrame extends RenderBox
   @override
   double computeMaxIntrinsicHeight(double width) {
     if (_isFullyCollapsed) {
-      return tabExtent;
+      return tabAxis == Axis.horizontal ? _tabStripExtent : tabExtent;
     }
 
     final childMaxIntrinsicHeight =
@@ -1843,10 +1870,7 @@ class RenderTabFrame extends RenderBox
           x(tabRadius.topRight.y),
           indicatorStart,
         )
-        ..lineTo(
-          x(_tabStripExtent - tabRadius.bottomRight.y),
-          indicatorStart,
-        )
+        ..lineTo(x(_tabStripExtent - tabRadius.bottomRight.y), indicatorStart)
         ..quadraticBezierTo(
           x(_tabStripExtent),
           indicatorStart,
@@ -1889,10 +1913,7 @@ class RenderTabFrame extends RenderBox
         ..quadraticBezierTo(0, y(0), radius.topLeft.x, y(0))
         ..lineTo(width - radius.topRight.x, y(0))
         ..quadraticBezierTo(width, y(0), width, y(radius.topRight.y))
-        ..lineTo(
-          width,
-          y(height - _tabStripExtent - radius.bottomRight.y),
-        )
+        ..lineTo(width, y(height - _tabStripExtent - radius.bottomRight.y))
         ..quadraticBezierTo(
           width,
           y(height - _tabStripExtent),
@@ -2051,6 +2072,8 @@ class RenderTabFrame extends RenderBox
         fadeDuringCollapse: child != _collapsedActionChild,
       );
     }
+
+    _paintBorder(context.canvas, offset);
   }
 
   void _paintBackground(Canvas canvas, Offset offset) {
@@ -2075,6 +2098,38 @@ class RenderTabFrame extends RenderBox
         ..drawPath(path, paint)
         ..restore();
     }
+  }
+
+  void _paintBorder(Canvas canvas, Offset offset) {
+    final configuredBorder = border;
+    final side = configuredBorder?.top;
+    if (side == null || side.style == BorderStyle.none || side.width == 0) {
+      return;
+    }
+
+    final frameAlpha = _frameAlpha;
+    if (frameAlpha == 0) {
+      return;
+    }
+
+    final borderColor = side.color.withAlpha(
+      (side.color.a * frameAlpha).round(),
+    );
+    final paint = Paint()
+      ..color = borderColor
+      // A canvas stroke is centered on its path. Doubling its width and
+      // clipping it to the active-frame path preserves the requested width
+      // entirely inside the frame instead of losing half at outer edges.
+      ..strokeWidth = side.width * 2
+      ..style = PaintingStyle.stroke;
+    final path = _getPath();
+
+    canvas
+      ..save()
+      ..translate(offset.dx, offset.dy)
+      ..clipPath(path)
+      ..drawPath(path, paint)
+      ..restore();
   }
 
   void _paintCollapsed(PaintingContext context, Offset offset) {
@@ -2264,6 +2319,7 @@ class RenderTabFrame extends RenderBox
     properties.add(
       DiagnosticsProperty<BorderRadius>('tabBorderRadius', tabBorderRadius),
     );
+    properties.add(DiagnosticsProperty<Border?>('border', border));
     properties.add(DoubleProperty('tabExtent', tabExtent));
     properties.add(EnumProperty<TabEdge>('tabEdge', tabEdge));
     properties.add(EnumProperty<Axis>('tabAxis', tabAxis));

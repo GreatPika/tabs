@@ -176,6 +176,40 @@ void main() {
     expect(tabs.collapseDuration, const Duration(milliseconds: 220));
   });
 
+  test('accepts a uniform border for the joined active frame', () {
+    const border = Border.fromBorderSide(
+      BorderSide(color: Colors.blue, width: 2),
+    );
+    final tabs = Tabs(
+      border: border,
+      tabs: const [Text('Tab')],
+      child: const SizedBox.expand(),
+    );
+
+    expect(tabs.border, border);
+  });
+
+  testWidgets('rejects a non-uniform active frame border', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Tabs(
+          border: const Border(top: BorderSide(color: Colors.blue)),
+          tabs: const [Text('Tab')],
+          child: const SizedBox.expand(),
+        ),
+      ),
+    );
+
+    expect(
+      tester.takeException(),
+      isA<FlutterError>().having(
+        (error) => error.message,
+        'message',
+        contains('border must use the same BorderSide'),
+      ),
+    );
+  });
+
   testWidgets('renders tab content from the tabs package import', (
     tester,
   ) async {

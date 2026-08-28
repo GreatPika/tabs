@@ -1,5 +1,13 @@
 # Changelog
 
+## 5.1.0
+
+- Add `border` for a uniform outline around the active tab and its content.
+- Add `TabsActionButton.widget` for action icons rendered by arbitrary widgets.
+- Keep `borderRadius` and `tabBorderRadius` corners in physical screen
+  coordinates on every tab edge.
+- Apply `tabButtonGap` to the outer edges of tab-strip action buttons.
+
 ## 5.0.0
 
 - Narrow the root package export to the supported widgets, tab edge, and

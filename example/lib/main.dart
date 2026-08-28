@@ -183,6 +183,7 @@ class _ExamplePageState extends State<ExamplePage>
       },
       borderRadius: _creditCardBorderRadius,
       tabBorderRadius: _tabBorderRadius,
+      border: Border.all(color: Colors.blue, width: 2),
       tabEdge: TabEdge.top,
       duration: const Duration(milliseconds: 220),
       curve: Curves.easeIn,

@@ -61,48 +61,122 @@ class _ProbeBox extends SingleChildRenderObjectWidget {
 // regressions together because they share the RenderTabFrame geometry contract.
 // ignore: cyclomatic-complexity, halstead-volume, source-lines-of-code, maintainability-index
 void main() {
-  testWidgets(
-    'border radius keeps physical bottom corners for top-edge tabs',
-    (tester) async {
-      final boundaryKey = GlobalKey();
+  testWidgets('border outlines the joined active tab and content shape', (
+    tester,
+  ) async {
+    final boundaryKey = GlobalKey();
 
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Center(
-            child: RepaintBoundary(
-              key: boundaryKey,
-              child: ColoredBox(
-                color: Colors.white,
-                child: SizedBox(
-                  width: 120,
-                  height: 100,
-                  child: Tabs(
-                    color: Colors.red,
-                    tabExtent: 30,
-                    borderRadius: const BorderRadius.only(
-                      bottomLeft: Radius.circular(24),
-                    ),
-                    tabBorderRadius: BorderRadius.zero,
-                    tabs: const [SizedBox.expand()],
-                    child: const SizedBox.expand(),
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Center(
+          child: RepaintBoundary(
+            key: boundaryKey,
+            child: ColoredBox(
+              color: Colors.white,
+              child: SizedBox(
+                width: 120,
+                height: 100,
+                child: Tabs(
+                  color: Colors.cyan,
+                  border: const Border.fromBorderSide(
+                    BorderSide(color: Colors.red, width: 4),
                   ),
+                  borderRadius: BorderRadius.zero,
+                  tabBorderRadius: BorderRadius.zero,
+                  tabExtent: 30,
+                  tabs: const [SizedBox.expand(), SizedBox.expand()],
+                  child: const SizedBox.expand(),
                 ),
               ),
             ),
           ),
         ),
-      );
+      ),
+    );
 
-      expect(
-        await readBoundaryPixel(
-          tester: tester,
-          boundary: find.byKey(boundaryKey),
-          position: const Offset(1, 99),
+    expect(
+      (await readBoundaryPixel(
+        tester: tester,
+        boundary: find.byKey(boundaryKey),
+        position: const Offset(0, 60),
+      )).toARGB32(),
+      Colors.red.toARGB32(),
+    );
+    expect(
+      (await readBoundaryPixel(
+        tester: tester,
+        boundary: find.byKey(boundaryKey),
+        position: const Offset(3, 60),
+      )).toARGB32(),
+      Colors.red.toARGB32(),
+    );
+    expect(
+      (await readBoundaryPixel(
+        tester: tester,
+        boundary: find.byKey(boundaryKey),
+        position: const Offset(5, 60),
+      )).toARGB32(),
+      Colors.cyan.toARGB32(),
+    );
+    expect(
+      (await readBoundaryPixel(
+        tester: tester,
+        boundary: find.byKey(boundaryKey),
+        position: const Offset(30, 0),
+      )).toARGB32(),
+      Colors.red.toARGB32(),
+    );
+    expect(
+      (await readBoundaryPixel(
+        tester: tester,
+        boundary: find.byKey(boundaryKey),
+        position: const Offset(90, 0),
+      )).toARGB32(),
+      Colors.white.toARGB32(),
+    );
+  });
+
+  testWidgets('border radius keeps physical bottom corners for top-edge tabs', (
+    tester,
+  ) async {
+    final boundaryKey = GlobalKey();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Center(
+          child: RepaintBoundary(
+            key: boundaryKey,
+            child: ColoredBox(
+              color: Colors.white,
+              child: SizedBox(
+                width: 120,
+                height: 100,
+                child: Tabs(
+                  color: Colors.red,
+                  tabExtent: 30,
+                  borderRadius: const BorderRadius.only(
+                    bottomLeft: Radius.circular(24),
+                  ),
+                  tabBorderRadius: BorderRadius.zero,
+                  tabs: const [SizedBox.expand()],
+                  child: const SizedBox.expand(),
+                ),
+              ),
+            ),
+          ),
         ),
-        Colors.white,
-      );
-    },
-  );
+      ),
+    );
+
+    expect(
+      await readBoundaryPixel(
+        tester: tester,
+        boundary: find.byKey(boundaryKey),
+        position: const Offset(1, 99),
+      ),
+      Colors.white,
+    );
+  });
 
   testWidgets('collapsed tabs keep strip footprint and action edge anchor', (
     tester,
@@ -192,56 +266,56 @@ void main() {
       collapseOnTrailing: false,
       parentSize: const Size(300, 40),
       expectedSize: const Size(300, 40),
-      expectedActionOffset: Offset.zero,
+      expectedActionOffset: const Offset(4, 0),
     );
     await verify(
       tabEdge: TabEdge.top,
       collapseOnTrailing: true,
       parentSize: const Size(300, 40),
       expectedSize: const Size(300, 40),
-      expectedActionOffset: const Offset(260, 0),
+      expectedActionOffset: const Offset(256, 0),
     );
     await verify(
       tabEdge: TabEdge.bottom,
       collapseOnTrailing: false,
       parentSize: const Size(300, 40),
       expectedSize: const Size(300, 40),
-      expectedActionOffset: Offset.zero,
+      expectedActionOffset: const Offset(4, 0),
     );
     await verify(
       tabEdge: TabEdge.bottom,
       collapseOnTrailing: true,
       parentSize: const Size(300, 40),
       expectedSize: const Size(300, 40),
-      expectedActionOffset: const Offset(260, 0),
+      expectedActionOffset: const Offset(256, 0),
     );
     await verify(
       tabEdge: TabEdge.left,
       collapseOnTrailing: false,
       parentSize: const Size(40, 160),
       expectedSize: const Size(40, 160),
-      expectedActionOffset: Offset.zero,
+      expectedActionOffset: const Offset(0, 4),
     );
     await verify(
       tabEdge: TabEdge.left,
       collapseOnTrailing: true,
       parentSize: const Size(40, 160),
       expectedSize: const Size(40, 160),
-      expectedActionOffset: const Offset(0, 120),
+      expectedActionOffset: const Offset(0, 116),
     );
     await verify(
       tabEdge: TabEdge.right,
       collapseOnTrailing: false,
       parentSize: const Size(40, 160),
       expectedSize: const Size(40, 160),
-      expectedActionOffset: Offset.zero,
+      expectedActionOffset: const Offset(0, 4),
     );
     await verify(
       tabEdge: TabEdge.right,
       collapseOnTrailing: true,
       parentSize: const Size(40, 160),
       expectedSize: const Size(40, 160),
-      expectedActionOffset: const Offset(0, 120),
+      expectedActionOffset: const Offset(0, 116),
     );
   });
 
@@ -285,28 +359,28 @@ void main() {
     var renderFrame = await pumpCollapsedFrame(TabEdge.top);
     expect(
       renderFrame.getDryLayout(const BoxConstraints(maxWidth: 320)),
-      const Size(320, 40),
+      const Size(320, 44),
     );
     expect(
       renderFrame.getDryLayout(const BoxConstraints()),
-      const Size.square(40),
+      const Size(40, 44),
     );
-    expect(renderFrame.getMinIntrinsicHeight(320), 40);
-    expect(renderFrame.getMaxIntrinsicHeight(320), 40);
+    expect(renderFrame.getMinIntrinsicHeight(320), 44);
+    expect(renderFrame.getMaxIntrinsicHeight(320), 44);
     expect(renderFrame.getMinIntrinsicWidth(40), 40);
     expect(renderFrame.getMaxIntrinsicWidth(40), 40);
 
     renderFrame = await pumpCollapsedFrame(TabEdge.left);
     expect(
       renderFrame.getDryLayout(const BoxConstraints(maxHeight: 180)),
-      const Size(40, 180),
+      const Size(44, 180),
     );
     expect(
       renderFrame.getDryLayout(const BoxConstraints()),
-      const Size.square(40),
+      const Size(44, 40),
     );
-    expect(renderFrame.getMinIntrinsicWidth(180), 40);
-    expect(renderFrame.getMaxIntrinsicWidth(180), 40);
+    expect(renderFrame.getMinIntrinsicWidth(180), 44);
+    expect(renderFrame.getMaxIntrinsicWidth(180), 44);
     expect(renderFrame.getMinIntrinsicHeight(40), 40);
     expect(renderFrame.getMaxIntrinsicHeight(40), 40);
     expect(collapsedValue, isTrue);
@@ -827,6 +901,7 @@ void main() {
                 collapsedActionIndex: null,
                 borderRadius: BorderRadius.zero,
                 tabBorderRadius: BorderRadius.zero,
+                border: null,
                 tabExtent: 40,
                 tabEdge: TabEdge.top,
                 tabAxis: Axis.horizontal,
