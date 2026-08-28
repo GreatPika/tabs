@@ -61,6 +61,49 @@ class _ProbeBox extends SingleChildRenderObjectWidget {
 // regressions together because they share the RenderTabFrame geometry contract.
 // ignore: cyclomatic-complexity, halstead-volume, source-lines-of-code, maintainability-index
 void main() {
+  testWidgets(
+    'border radius keeps physical bottom corners for top-edge tabs',
+    (tester) async {
+      final boundaryKey = GlobalKey();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Center(
+            child: RepaintBoundary(
+              key: boundaryKey,
+              child: ColoredBox(
+                color: Colors.white,
+                child: SizedBox(
+                  width: 120,
+                  height: 100,
+                  child: Tabs(
+                    color: Colors.red,
+                    tabExtent: 30,
+                    borderRadius: const BorderRadius.only(
+                      bottomLeft: Radius.circular(24),
+                    ),
+                    tabBorderRadius: BorderRadius.zero,
+                    tabs: const [SizedBox.expand()],
+                    child: const SizedBox.expand(),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(
+        await readBoundaryPixel(
+          tester: tester,
+          boundary: find.byKey(boundaryKey),
+          position: const Offset(1, 99),
+        ),
+        Colors.white,
+      );
+    },
+  );
+
   testWidgets('collapsed tabs keep strip footprint and action edge anchor', (
     tester,
   ) async {
@@ -952,11 +995,13 @@ void main() {
         width: 240,
         tabsStart: 0.25,
         tabsEnd: 0.75,
-        tabBorderRadius: const BorderRadius.all(Radius.circular(20)),
+        tabBorderRadius: const BorderRadius.only(
+          bottomRight: Radius.circular(20),
+        ),
       ),
     );
 
-    expect(await pixel(const Offset(50, 20)), tabsColor);
+    expect(await pixel(const Offset(50, 20)), Colors.white);
   });
 
   testWidgets(

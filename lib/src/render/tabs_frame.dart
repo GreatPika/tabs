@@ -1319,7 +1319,7 @@ class RenderTabFrame extends RenderBox
   }
 
   Rect get _tabLabelClipRect {
-    final radiusExtent = tabBorderRadius.bottomRight.x;
+    final radiusExtent = _radiusForFrame(tabBorderRadius).bottomRight.x;
     final side = tabAxis == Axis.horizontal ? size.width : size.height;
     final clipStart = tabLeadingActionCount == 0
         ? max(0.0, _tabLabelStart - radiusExtent)
@@ -1675,7 +1675,7 @@ class RenderTabFrame extends RenderBox
   // against the complete set of edge, axis, extent, range, and radius inputs.
   // ignore: halstead-volume, source-lines-of-code
   Path _buildClipPath() {
-    final radiusExtent = tabBorderRadius.bottomRight.x;
+    final radiusExtent = _radiusForFrame(tabBorderRadius).bottomRight.x;
     final double cutoff = max(0, _tabViewport.start - radiusExtent);
 
     if (tabAxis == Axis.vertical) {
@@ -1732,6 +1732,24 @@ class RenderTabFrame extends RenderBox
     return (start, end);
   }
 
+  BorderRadius _radiusForFrame(BorderRadius radius) {
+    return switch (tabEdge) {
+      TabEdge.top => BorderRadius.only(
+        topLeft: radius.bottomLeft,
+        topRight: radius.bottomRight,
+        bottomRight: radius.topRight,
+        bottomLeft: radius.topLeft,
+      ),
+      TabEdge.right => BorderRadius.only(
+        topLeft: radius.topRight,
+        topRight: radius.topLeft,
+        bottomRight: radius.bottomLeft,
+        bottomLeft: radius.bottomRight,
+      ),
+      TabEdge.bottom || TabEdge.left => radius,
+    };
+  }
+
   // The frame path is easier to verify as one edge-aware builder because the
   // critical points are shared by adjacent contour segments.
   // ignore: cyclomatic-complexity, halstead-volume, source-lines-of-code, maintainability-index
@@ -1741,6 +1759,8 @@ class RenderTabFrame extends RenderBox
     final height = size.height;
 
     final (indicatorStart, indicatorEnd) = _getIndicatorBounds(progress);
+    final radius = _radiusForFrame(borderRadius);
+    final tabRadius = _radiusForFrame(tabBorderRadius);
 
     double? critical1;
     double? critical2;
@@ -1752,10 +1772,10 @@ class RenderTabFrame extends RenderBox
       final flipX = tabEdge == TabEdge.right;
       double x(double value) => flipX ? width - value : value;
 
-      final tbrx = tabBorderRadius.bottomRight.x;
-      final tblx = tabBorderRadius.bottomLeft.x;
-      final tly = borderRadius.topLeft.y;
-      final bly = borderRadius.bottomLeft.y;
+      final tbrx = tabRadius.bottomRight.x;
+      final tblx = tabRadius.bottomLeft.x;
+      final tly = radius.topLeft.y;
+      final bly = radius.bottomLeft.y;
 
       final sum1 = tbrx + tly;
       if (sum1 > 0 && indicatorStart < sum1) {
@@ -1771,16 +1791,16 @@ class RenderTabFrame extends RenderBox
 
       // Path phase 3a: build the vertical frame contour.
       return Path()
-        ..moveTo(x(width - borderRadius.topRight.x), 0)
-        ..quadraticBezierTo(x(width), 0, x(width), borderRadius.topRight.y)
-        ..lineTo(x(width), height - borderRadius.bottomRight.y)
+        ..moveTo(x(width - radius.topRight.x), 0)
+        ..quadraticBezierTo(x(width), 0, x(width), radius.topRight.y)
+        ..lineTo(x(width), height - radius.bottomRight.y)
         ..quadraticBezierTo(
           x(width),
           height,
-          x(width - borderRadius.bottomRight.x),
+          x(width - radius.bottomRight.x),
           height,
         )
-        ..lineTo(x(_tabStripExtent + borderRadius.bottomLeft.x), height)
+        ..lineTo(x(_tabStripExtent + radius.bottomLeft.x), height)
         ..quadraticBezierTo(
           x(_tabStripExtent),
           height,
@@ -1794,25 +1814,25 @@ class RenderTabFrame extends RenderBox
         ..quadraticBezierTo(
           x(_tabStripExtent),
           indicatorEnd,
-          x(_tabStripExtent - tabBorderRadius.bottomLeft.y),
+          x(_tabStripExtent - tabRadius.bottomLeft.y),
           indicatorEnd,
         )
-        ..lineTo(x(tabBorderRadius.topLeft.y), indicatorEnd)
+        ..lineTo(x(tabRadius.topLeft.y), indicatorEnd)
         ..quadraticBezierTo(
           x(0),
           indicatorEnd,
           x(0),
-          indicatorEnd - tabBorderRadius.topLeft.x,
+          indicatorEnd - tabRadius.topLeft.x,
         )
-        ..lineTo(x(0), indicatorStart + tabBorderRadius.topRight.x)
+        ..lineTo(x(0), indicatorStart + tabRadius.topRight.x)
         ..quadraticBezierTo(
           x(0),
           indicatorStart,
-          x(tabBorderRadius.topRight.y),
+          x(tabRadius.topRight.y),
           indicatorStart,
         )
         ..lineTo(
-          x(_tabStripExtent - tabBorderRadius.bottomRight.y),
+          x(_tabStripExtent - tabRadius.bottomRight.y),
           indicatorStart,
         )
         ..quadraticBezierTo(
@@ -1825,7 +1845,7 @@ class RenderTabFrame extends RenderBox
         ..quadraticBezierTo(
           x(_tabStripExtent),
           0,
-          x(_tabStripExtent + borderRadius.topLeft.x),
+          x(_tabStripExtent + radius.topLeft.x),
           0,
         )
         ..close();
@@ -1834,10 +1854,10 @@ class RenderTabFrame extends RenderBox
       final flipY = tabEdge == TabEdge.top;
       double y(double value) => flipY ? height - value : value;
 
-      final brx = borderRadius.bottomRight.x;
-      final tblx = tabBorderRadius.bottomLeft.x;
-      final tbrx = tabBorderRadius.topLeft.y;
-      final blx = borderRadius.bottomLeft.x;
+      final brx = radius.bottomRight.x;
+      final tblx = tabRadius.bottomLeft.x;
+      final tbrx = tabRadius.topLeft.y;
+      final blx = radius.bottomLeft.x;
 
       final sum1 = brx + tblx;
       if (sum1 > 0 && width - indicatorEnd < sum1) {
@@ -1853,13 +1873,13 @@ class RenderTabFrame extends RenderBox
 
       // Path phase 3b: build the horizontal frame contour.
       return Path()
-        ..moveTo(0, y(borderRadius.topLeft.y))
-        ..quadraticBezierTo(0, y(0), borderRadius.topLeft.x, y(0))
-        ..lineTo(width - borderRadius.topRight.x, y(0))
-        ..quadraticBezierTo(width, y(0), width, y(borderRadius.topRight.y))
+        ..moveTo(0, y(radius.topLeft.y))
+        ..quadraticBezierTo(0, y(0), radius.topLeft.x, y(0))
+        ..lineTo(width - radius.topRight.x, y(0))
+        ..quadraticBezierTo(width, y(0), width, y(radius.topRight.y))
         ..lineTo(
           width,
-          y(height - _tabStripExtent - borderRadius.bottomRight.y),
+          y(height - _tabStripExtent - radius.bottomRight.y),
         )
         ..quadraticBezierTo(
           width,
@@ -1875,25 +1895,25 @@ class RenderTabFrame extends RenderBox
           indicatorEnd,
           y(height - _tabStripExtent),
           indicatorEnd,
-          y(height - _tabStripExtent + tabBorderRadius.bottomLeft.y),
+          y(height - _tabStripExtent + tabRadius.bottomLeft.y),
         )
-        ..lineTo(indicatorEnd, y(height - tabBorderRadius.topLeft.y))
+        ..lineTo(indicatorEnd, y(height - tabRadius.topLeft.y))
         ..quadraticBezierTo(
           indicatorEnd,
           y(height),
-          indicatorEnd - tabBorderRadius.topLeft.x,
+          indicatorEnd - tabRadius.topLeft.x,
           y(height),
         )
-        ..lineTo(indicatorStart + tabBorderRadius.topRight.x, y(height))
+        ..lineTo(indicatorStart + tabRadius.topRight.x, y(height))
         ..quadraticBezierTo(
           indicatorStart,
           y(height),
           indicatorStart,
-          y(height - tabBorderRadius.topRight.y),
+          y(height - tabRadius.topRight.y),
         )
         ..lineTo(
           indicatorStart,
-          y(height - _tabStripExtent + tabBorderRadius.bottomRight.y),
+          y(height - _tabStripExtent + tabRadius.bottomRight.y),
         )
         ..quadraticBezierTo(
           indicatorStart,
@@ -1909,7 +1929,7 @@ class RenderTabFrame extends RenderBox
           0,
           y(height - _tabStripExtent),
           0,
-          y(height - _tabStripExtent - borderRadius.bottomLeft.y),
+          y(height - _tabStripExtent - radius.bottomLeft.y),
         )
         ..close();
     }

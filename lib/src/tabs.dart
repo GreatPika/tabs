@@ -13,9 +13,6 @@ import 'render/tabs_frame.dart';
 import 'tab_edge.dart';
 
 /// Button appearance variants available for tab-strip action buttons.
-///
-/// The variant controls the generated button's appearance, not the icon
-/// accepted by [TabsActionButton.icon].
 enum TabsActionButtonVariant {
   /// Standard [IconButton].
   standard,
@@ -60,7 +57,7 @@ bool _isCollapseToggleAction(TabsActionButton button) {
 /// An action button shown in the tab strip.
 ///
 /// `Tabs` owns the button widget, size, shape, and tab-strip alignment. Callers
-/// provide an [IconData] and the button action.
+/// provide either an [IconData] or a widget and the button action.
 class TabsActionButton {
   const TabsActionButton({
     required this.icon,
@@ -69,7 +66,21 @@ class TabsActionButton {
     this.semanticLabel,
     this.variant = TabsActionButtonVariant.filledTonal,
     this.action = TabsActionButtonAction.custom,
-  });
+  }) : _iconWidget = null;
+
+  /// Creates an action button with any icon widget.
+  ///
+  /// Use this constructor for icons that are rendered as widgets, such as
+  /// `HugeIcon` from the `hugeicons` package.
+  const TabsActionButton.widget({
+    required Widget icon,
+    this.onPressed,
+    this.key,
+    this.semanticLabel,
+    this.variant = TabsActionButtonVariant.filledTonal,
+    this.action = TabsActionButtonAction.custom,
+  }) : icon = null,
+       _iconWidget = icon;
 
   /// Key assigned to the generated button.
   final Key? key;
@@ -77,8 +88,11 @@ class TabsActionButton {
   /// Icon displayed by the generated button.
   ///
   /// This can be any [IconData], including [Icons] (Material Icons),
-  /// `HugeIcons`, `CupertinoIcons`, or another icon-font package.
-  final IconData icon;
+  /// `CupertinoIcons`, or another icon-font package. Use
+  /// [TabsActionButton.widget] for icons rendered as widgets.
+  final IconData? icon;
+
+  final Widget? _iconWidget;
 
   /// Called when the generated button is tapped.
   ///
@@ -99,7 +113,13 @@ class TabsActionButton {
   final TabsActionButtonVariant variant;
 
   Widget _build(ButtonStyle style, {required VoidCallback? onPressed}) {
-    final buttonIcon = Icon(icon, semanticLabel: semanticLabel);
+    final buttonIcon = switch (_iconWidget) {
+      null => Icon(icon, semanticLabel: semanticLabel),
+      final Widget icon =>
+        semanticLabel == null
+            ? icon
+            : Semantics(label: semanticLabel, child: icon),
+    };
 
     return switch (variant) {
       TabsActionButtonVariant.standard => IconButton(
@@ -242,10 +262,16 @@ class Tabs extends StatefulWidget {
 
   /// Sets the border radius surrounding the children
   ///
+  /// Each value refers to its physical on-screen corner, regardless of
+  /// [tabEdge].
+  ///
   /// Defaults to [BorderRadius.all(Radius.circular(12.0))]
   final BorderRadius borderRadius;
 
   /// Sets the border radius surrounding each tab
+  ///
+  /// Each value refers to its physical on-screen corner, regardless of
+  /// [tabEdge].
   ///
   /// Defaults to [BorderRadius.all(Radius.circular(12.0))]
   final BorderRadius tabBorderRadius;

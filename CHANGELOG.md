@@ -24,6 +24,8 @@
   shaped to the same radius as tab labels.
 - Add `TabsActionButtonVariant` so tab-strip buttons can use standard, filled,
   filled tonal, or outlined Material button variants.
+- Add `TabsActionButton.widget` for icon packages that render icons as widgets,
+  including `hugeicons`.
 - Change package-managed `children` mode so transitions switch only the active
   child; inactive child-state retention is caller-owned through `child` with an
   `IndexedStack`, `PageView`, or equivalent container.

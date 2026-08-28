@@ -37,6 +37,10 @@ class ExamplePage extends StatefulWidget {
 class _ExamplePageState extends State<ExamplePage>
     with SingleTickerProviderStateMixin {
   static const _tabBorderRadius = BorderRadius.all(Radius.circular(20.0));
+  static const _creditCardBorderRadius = BorderRadius.only(
+    topLeft: Radius.circular(20.0),
+    topRight: Radius.circular(20.0),
+  );
   static const _creditCardTabsExpandedSize = Size(400, 320);
 
   late final TabController _controller;
@@ -177,7 +181,7 @@ class _ExamplePageState extends State<ExamplePage>
           _creditCardTabsCollapsed = value;
         });
       },
-      borderRadius: _tabBorderRadius,
+      borderRadius: _creditCardBorderRadius,
       tabBorderRadius: _tabBorderRadius,
       tabEdge: TabEdge.top,
       duration: const Duration(milliseconds: 220),

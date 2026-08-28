@@ -120,6 +120,56 @@ void main() {
     }
   });
 
+  testWidgets('tab strip buttons support arbitrary icon widgets', (
+    tester,
+  ) async {
+    const buttonKey = ValueKey('widget-button');
+    const iconKey = ValueKey('widget-icon');
+    final semantics = tester.ensureSemantics();
+    var taps = 0;
+
+    try {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: SizedBox(
+            width: 300,
+            height: 160,
+            child: Tabs(
+              tabLeadingButtons: [
+                TabsActionButton.widget(
+                  key: buttonKey,
+                  icon: const SizedBox(key: iconKey),
+                  semanticLabel: 'Custom action',
+                  onPressed: () => taps++,
+                ),
+              ],
+              tabs: const [Text('A')],
+              child: const SizedBox.expand(),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.byKey(iconKey), findsOneWidget);
+      expect(
+        tester.getSemantics(find.byKey(buttonKey)),
+        matchesSemantics(
+          label: 'Custom action',
+          isButton: true,
+          hasTapAction: true,
+          hasFocusAction: true,
+          hasEnabledState: true,
+          isEnabled: true,
+          isFocusable: true,
+        ),
+      );
+      await tester.tap(find.byKey(buttonKey));
+      expect(taps, 1);
+    } finally {
+      semantics.dispose();
+    }
+  });
+
   testWidgets('collapse action leaves only its leading or trailing button', (
     tester,
   ) async {
