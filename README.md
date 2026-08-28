@@ -95,7 +95,7 @@ container.
 ## Styling
 
 `Tabs` supports per-tab colors, a single background color, optional separate
-surfaces for unselected horizontal tab labels, a uniform outline around the
+surfaces for unselected tab labels, a uniform outline around the
 active tab and content, separate border radii for the content and tabs, tab
 placement on any edge, tab range constraints, text style animation, custom
 transition builders, tab-strip action buttons, and child padding.
@@ -151,7 +151,7 @@ tab and its content. The border follows the same joined shape as the active
 background.
 
 Set `unselectedTabColor` to opt into separate rounded surfaces for unselected
-labels on top and bottom tab strips. `unselectedTabGap` controls the space
+labels on any tab-strip edge. `unselectedTabGap` controls the space
 between labels and defaults to 2 logical pixels. The gaps show the active frame
 color, including its existing transition between entries. Leaving
 `unselectedTabColor` unset preserves the previous appearance.

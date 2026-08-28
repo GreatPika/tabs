@@ -2042,8 +2042,7 @@ class RenderTabFrame extends RenderBox
         Colors.transparent;
   }
 
-  bool get _hasUnselectedTabSurfaces =>
-      unselectedTabColor != null && tabAxis == Axis.horizontal;
+  bool get _hasUnselectedTabSurfaces => unselectedTabColor != null;
 
   Rect get _unselectedTabSurfaceBackgroundRect => switch (tabEdge) {
     TabEdge.top => Rect.fromLTRB(
@@ -2058,7 +2057,18 @@ class RenderTabFrame extends RenderBox
       _tabLabelEnd,
       size.height,
     ),
-    TabEdge.left || TabEdge.right => Rect.zero,
+    TabEdge.left => Rect.fromLTRB(
+      0,
+      _tabLabelStart,
+      _tabStripExtent,
+      _tabLabelEnd,
+    ),
+    TabEdge.right => Rect.fromLTRB(
+      size.width - _tabStripExtent,
+      _tabLabelStart,
+      size.width,
+      _tabLabelEnd,
+    ),
   };
 
   RRect _unselectedTabSurfaceRRect(int index) {
@@ -2074,7 +2084,13 @@ class RenderTabFrame extends RenderBox
         end,
         size.height,
       ),
-      TabEdge.left || TabEdge.right => Rect.zero,
+      TabEdge.left => Rect.fromLTRB(0, start, _tabStripExtent, end),
+      TabEdge.right => Rect.fromLTRB(
+        size.width - _tabStripExtent,
+        start,
+        size.width,
+        end,
+      ),
     };
 
     return RRect.fromRectAndCorners(
