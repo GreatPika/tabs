@@ -247,6 +247,9 @@ void main() {
 
       final tabsRect = tester.getRect(find.byKey(tabsKey));
       final collapseRect = tester.getRect(find.byKey(collapseKey));
+      final tabButtonGap = tester
+          .widget<Tabs>(find.byKey(tabsKey))
+          .tabButtonGap;
       expect(collapsed, isTrue);
       expect(tabsRect.size, const Size(300, 50));
       expect(tester.getSize(find.byKey(otherKey)), Size.zero);
@@ -257,9 +260,9 @@ void main() {
       expect(collapseRect.top, tabsRect.top);
       expect(collapseRect.bottom, tabsRect.bottom);
       if (collapseOnTrailing) {
-        expect(collapseRect.right, tabsRect.right);
+        expect(collapseRect.right, tabsRect.right - tabButtonGap);
       } else {
-        expect(collapseRect.left, tabsRect.left);
+        expect(collapseRect.left, tabsRect.left + tabButtonGap);
       }
 
       await tester.tap(find.byKey(collapseKey));
